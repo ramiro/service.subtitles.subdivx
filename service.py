@@ -177,35 +177,19 @@ def Search(item):
     file_original_path = item['file_original_path']
     title = item['title']
     tvshow = item['tvshow']
-    #year
     season = item['season']
     episode = item['episode']
     twolet_lang = item['2let_language']
     threelet_lang = item['3let_language']
-    #set_temp
-    #rar
-    #lang1
-    #lang2
-    #lang3
-    #stack
 
     subtitles_list = []
-    #msg = ""
     if tvshow:
         searchstring = "%s S%#02dE%#02d" % (tvshow, int(season), int(episode))
     else:
         searchstring = title
     log(u"Search string = %s" % (searchstring,))
 
-    #spanish = 0
-    #if string.lower(lang1) == "spanish": spanish = 1
-    #elif string.lower(lang2) == "spanish": spanish = 2
-    #elif string.lower(lang3) == "spanish": spanish = 3
-
     subtitles_list = getallsubs(searchstring, "es", "Spanish", file_original_path)
-
-    #if not spanish:
-    #    msg = "Won't work, Subdivx is only for Spanish subtitles!"
 
     for sub in subtitles_list:
         append_subtitle(sub)
@@ -365,5 +349,5 @@ elif params['action'] == 'download':
         listitem = xbmcgui.ListItem(label=sub)
         xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=sub, listitem=listitem, isFolder=False)
 
-
-xbmcplugin.endOfDirectory(int(sys.argv[1])) ## send end of directory to XBMC
+# Send end of directory to XBMC
+xbmcplugin.endOfDirectory(int(sys.argv[1]))
