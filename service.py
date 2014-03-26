@@ -179,8 +179,6 @@ def Search(item):
     tvshow = item['tvshow']
     season = item['season']
     episode = item['episode']
-    twolet_lang = item['2let_language']
-    threelet_lang = item['3let_language']
 
     subtitles_list = []
     if tvshow:
