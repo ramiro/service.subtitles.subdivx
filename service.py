@@ -111,7 +111,6 @@ def getallsubs(searchstring, languageshort, languagelong, file_original_path):
     subtitles_list = []
     if languageshort == "es":
         log(u"Getting '%s' subs ..." % languageshort)
-        title_words = re.split('[\W]+', searchstring)
         page = 1
         while True:
             url = SEARCH_PAGE_URL % {'page': page,
@@ -146,18 +145,6 @@ def getallsubs(searchstring, languageshort, languagelong, file_original_path):
                     log(u"Subtitles found: %s (id = %s)" % (text, id))
                 except Exception:
                     pass
-                # If the filename appears in the description put it in front
-                descr_words = re.split(r'\s', text)
-                n = 0
-                version = None
-                while n < len(descr_words) and version is None:
-                    version = re.search(title_words[0], descr_words[n],
-                                        re.IGNORECASE | re.DOTALL |
-                                        re.MULTILINE | re.UNICODE)
-                    n += 1
-                if version:
-                    text = descr_words[n-1] + " | " + text
-                 End of filename search
                 item = {
                     'rating': str(rating),
                     'filename': text.decode('latin1'),
