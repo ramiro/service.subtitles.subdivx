@@ -228,7 +228,7 @@ def Download(id, filename):
         if header == 'Rar!':
             local_tmp_file = pjoin(__temp__, "subdivx.rar")
             packed = True
-        elif header == 'PK':
+        elif header == 'PK\x03\x04':
             local_tmp_file = pjoin(__temp__, "subdivx.zip")
             packed = True
         else:
