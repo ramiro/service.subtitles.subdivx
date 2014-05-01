@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 # Subdivx.com subtitles, based on a mod of Undertext subtitles
-# Adaptation: enric_godes@hotmail.com | Please use email address for your comments
+# Adaptation: enric_godes@hotmail.com | Please use email address for your
+# comments
 # Port to XBMC 13 Gotham subtitles infrastructure: cramm, Mar 2014
 
+from __future__ import print_function
 import os
 from os.path import join as pjoin
 import re
@@ -11,11 +13,23 @@ import sys
 import time
 import unicodedata
 import urllib
-import xbmc
-import xbmcaddon
-import xbmcgui
-import xbmcplugin
-import xbmcvfs
+
+try:
+    import xbmc
+except ImportError:
+    if len(sys.argv) > 1 and sys.argv[1] == 'test':
+        import unittest  # NOQA
+        try:
+            import mock  # NOQA
+        except ImportError:
+            print("You need to install the mock Python library to run "
+                  "unit tests.\n")
+            sys.exit(1)
+else:
+    import xbmcaddon
+    import xbmcgui
+    import xbmcplugin
+    import xbmcvfs
 
 __addon__ = xbmcaddon.Addon()
 __author__     = __addon__.getAddonInfo('author')
@@ -29,7 +43,7 @@ __profile__    = xbmc.translatePath(__addon__.getAddonInfo('profile')).decode("u
 __resource__   = xbmc.translatePath(pjoin(__cwd__, 'resources', 'lib' ) ).decode("utf-8")
 __temp__       = xbmc.translatePath(pjoin(__profile__, 'temp')).decode("utf-8")
 
-sys.path.append (__resource__)
+sys.path.append(__resource__)
 
 
 MAIN_SUBDIVX_URL = "http://www.subdivx.com/"
