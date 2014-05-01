@@ -53,16 +53,16 @@ INTERNAL_LINK_URL = "plugin://%(scriptid)s/?action=download&id=%(id)s&filename=%
 SUB_EXTS = ['srt', 'sub', 'txt']
 HTTP_USER_AGENT = "User-Agent=Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.2.3) Gecko/20100401 Firefox/3.6.3 ( .NET CLR 3.5.30729)"
 
-#============================
+# ============================
 # Regular expression patterns
-#============================
+# ============================
 
-#Subtitle pattern example:
-#<div id="menu_titulo_buscador"><a class="titulo_menu_izq" href="http://www.subdivx.com/X6XMjEzMzIyX-iron-man-2-2010.html">Iron Man 2 (2010)</a></div>
-#<img src="img/calif5.gif" class="detalle_calif">
-#</div><div id="buscador_detalle">
-#<div id="buscador_detalle_sub">Para la versión Iron.Man.2.2010.480p.BRRip.XviD.AC3-EVO, sacados de acá. ¡Disfruten!</div><div id="buscador_detalle_sub_datos"><b>Downloads:</b> 4673 <b>Cds:</b> 1 <b>Comentarios:</b> <a rel="nofollow" href="popcoment.php?idsub=MjEzMzIy" onclick="return hs.htmlExpand(this, { objectType: 'iframe' } )">14</a> <b>Formato:</b> SubRip <b>Subido por:</b> <a class="link1" href="http://www.subdivx.com/X9X303157">TrueSword</a> <img src="http://www.subdivx.com/pais/2.gif" width="16" height="12"> <b>el</b> 06/09/2010  </a></div></div>
-#<div id="menu_detalle_buscador">
+# Subtitle pattern example:
+# <div id="menu_titulo_buscador"><a class="titulo_menu_izq" href="http://www.subdivx.com/X6XMjEzMzIyX-iron-man-2-2010.html">Iron Man 2 (2010)</a></div>
+# <img src="img/calif5.gif" class="detalle_calif">
+# </div><div id="buscador_detalle">
+# <div id="buscador_detalle_sub">Para la versión Iron.Man.2.2010.480p.BRRip.XviD.AC3-EVO, sacados de acá. ¡Disfruten!</div><div id="buscador_detalle_sub_datos"><b>Downloads:</b> 4673 <b>Cds:</b> 1 <b>Comentarios:</b> <a rel="nofollow" href="popcoment.php?idsub=MjEzMzIy" onclick="return hs.htmlExpand(this, { objectType: 'iframe' } )">14</a> <b>Formato:</b> SubRip <b>Subido por:</b> <a class="link1" href="http://www.subdivx.com/X9X303157">TrueSword</a> <img src="http://www.subdivx.com/pais/2.gif" width="16" height="12"> <b>el</b> 06/09/2010  </a></div></div>
+# <div id="menu_detalle_buscador">
 
 SUBTITLE_RE = re.compile(r'<a\s+class="titulo_menu_izq"\s+href="http://www.subdivx.com/(.+?)\.html">.+?<div\s+id="buscador_detalle_sub">(.*?)</div>.+?<b>Downloads:</b>(.+?)<b>Cds:</b>.+?</div></div>',
                          re.IGNORECASE | re.DOTALL | re.MULTILINE | re.UNICODE)
@@ -72,20 +72,23 @@ SUBTITLE_RE = re.compile(r'<a\s+class="titulo_menu_izq"\s+href="http://www.subdi
 
 DOWNLOAD_LINK_RE = re.compile(r'bajar.php\?id=(.*?)&u=(.*?)\"', re.IGNORECASE | re.DOTALL | re.MULTILINE | re.UNICODE)
 
-#==========
+# ==========
 # Functions
-#==========
+# ==========
+
 
 def _log(module, msg):
     s = u"### [%s] - %s" % (module, msg)
     xbmc.log(s.encode('utf-8'), level=xbmc.LOGDEBUG)
 
+
 def log(msg):
     _log(__name__, msg)
 
+
 def geturl(url):
     class MyOpener(urllib.FancyURLopener):
-        #version = HTTP_USER_AGENT
+        # version = HTTP_USER_AGENT
         version = ''
     my_urlopener = MyOpener()
     log(u"Getting url: %s" % (url,))
@@ -96,6 +99,7 @@ def geturl(url):
         log(u"Failed to get url:%s" % (url,))
         content = None
     return content
+
 
 def getallsubs(searchstring, languageshort, languagelong, file_original_path):
     subtitles_list = []
@@ -129,7 +133,7 @@ def getallsubs(searchstring, languageshort, languagelong, file_original_path):
                     log(u"Subtitles found: %s (id = %s)" %  (filename, id))
                 except Exception:
                     pass
-                # Find filename on the commentaries and put it in front
+                # Find filename in the comments and put it in front
                 title_first_word = re.split('[\W]+', searchstring)
                 comments_list = re.split('\s', filename)
                 n = 0
@@ -163,6 +167,7 @@ def getallsubs(searchstring, languageshort, languagelong, file_original_path):
 
     return subtitles_list
 
+
 def append_subtitle(item):
     listitem = xbmcgui.ListItem(
                    label=item['language_name'],
@@ -174,20 +179,23 @@ def append_subtitle(item):
     listitem.setProperty("sync", 'true' if item["sync"] else 'false')
     listitem.setProperty("hearing_imp", 'true' if item.get("hearing_imp", False) else 'false')
 
-    ## below arguments are optional, it can be used to pass any info needed in download function
-    ## anything after "action=download&" will be sent to addon once user clicks listed subtitle to downlaod
+    # Below arguments are optional, it can be used to pass any info needed in
+    # download function anything after "action=download&" will be sent to addon
+    # once user clicks listed subtitle to downlaod
     args = dict(item)
     args['scriptid'] = __scriptid__
     url = INTERNAL_LINK_URL % args
 
-    ## add it to list, this can be done as many times as needed for all subtitles found
+    # Add it to list, this can be done as many times as needed for all
+    # subtitles found
     xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=url, listitem=listitem, isFolder=False)
+
 
 def Search(item):
     """Called when searching for subtitles from XBMC."""
-    #### Do what's needed to get the list of subtitles from service site
-    #### use item["some_property"] that was set earlier
-    #### once done, set xbmcgui.ListItem() below and pass it to xbmcplugin.addDirectoryItem()
+    # Do what's needed to get the list of subtitles from service site
+    # use item["some_property"] that was set earlier
+    # once done, set xbmcgui.ListItem() below and pass it to xbmcplugin.addDirectoryItem()
     file_original_path = item['file_original_path']
     title = item['title']
     tvshow = item['tvshow']
@@ -206,10 +214,11 @@ def Search(item):
     for sub in subtitles_list:
         append_subtitle(sub)
 
+
 def Download(id, filename):
     """Called when subtitle download request from XBMC."""
-    # Cleanup temp dir, we recomend you download/unzip your subs in temp folder and
-    # pass that to XBMC to copy and activate
+    # Cleanup temp dir, we recomend you download/unzip your subs in temp folder
+    # and pass that to XBMC to copy and activate
     if xbmcvfs.exists(__temp__):
         shutil.rmtree(__temp__)
     xbmcvfs.mkdirs(__temp__)
@@ -232,8 +241,9 @@ def Download(id, filename):
             local_tmp_file = pjoin(__temp__, "subdivx.zip")
             packed = True
         else:
-            # never found/downloaded an unpacked subtitles file, but just to be sure ...
-            # assume unpacked sub file is an '.srt'
+            # Never found/downloaded an unpacked subtitles file, but just to be
+            # sure ...
+            # Assume unpacked sub file is a '.srt'
             local_tmp_file = pjoin(__temp__, "subdivx.srt")
             subs_file = local_tmp_file
             packed = False
@@ -247,7 +257,7 @@ def Download(id, filename):
         if packed:
             files = os.listdir(__temp__)
             init_filecount = len(files)
-            log(u"subdivx: número de init_filecount %s" % (init_filecount,)) #EGO
+            log(u"subdivx: número de init_filecount %s" % (init_filecount,))  # EGO
             filecount = init_filecount
             max_mtime = 0
             # Determine the newest file from __temp__
@@ -257,15 +267,18 @@ def Download(id, filename):
                     if mtime > max_mtime:
                         max_mtime =  mtime
             init_max_mtime = max_mtime
-            # Wait 2 seconds so that the unpacked files are at least 1 second newer
+            # Wait 2 seconds so that the unpacked files are at least 1 second
+            # newer
             time.sleep(2)
             xbmc.executebuiltin("XBMC.Extract(" + local_tmp_file.encode("utf-8") + ", " + __temp__.encode("utf-8") +")")
             waittime  = 0
-            while filecount == init_filecount and waittime < 20 and init_max_mtime == max_mtime: # nothing yet extracted
+            while filecount == init_filecount and waittime < 20 and init_max_mtime == max_mtime:
+                # Nothing yet extracted
                 time.sleep(1)  # wait 1 second to let the builtin function 'XBMC.extract' unpack
                 files = os.listdir(__temp__)
                 filecount = len(files)
-                # determine if there is a newer file created in __temp__ (marks that the extraction had completed)
+                # Determine if there is a newer file created in __temp__ (marks
+                # that the extraction had completed)
                 for file in files:
                     if file.split('.')[-1] in SUB_EXTS:
                         mtime = os.stat(pjoin(__temp__, file.decode("utf-8"))).st_mtime
@@ -289,8 +302,10 @@ def Download(id, filename):
             subtitles_list.append(subs_file)
     return subtitles_list
 
+
 def normalizeString(str):
     return unicodedata.normalize('NFKD', unicode(unicode(str, 'utf-8'))).encode('ascii', 'ignore')
+
 
 def get_params():
     param = []
@@ -299,7 +314,7 @@ def get_params():
         params = paramstring
         cleanedparams = params.replace('?', '')
         if params.endswith('/'):
-            params = params[:-2] # XXX: Should be [:-1] ?
+            params = params[:-2]  # XXX: Should be [:-1] ?
         pairsofparams = cleanedparams.split('&')
         param = {}
         for pair in pairsofparams:
@@ -309,6 +324,7 @@ def get_params():
                 param[splitparams[0]] = splitparams[1]
 
     return param
+
 
 def main():
     """Main entry point of the scritp when it is invoked by XBMC."""
@@ -320,12 +336,14 @@ def main():
         item = {}
         item['temp']               = False
         item['rar']                = False
-        item['year']               = xbmc.getInfoLabel("VideoPlayer.Year")                           # Year
-        item['season']             = str(xbmc.getInfoLabel("VideoPlayer.Season"))                    # Season
-        item['episode']            = str(xbmc.getInfoLabel("VideoPlayer.Episode"))                   # Episode
-        item['tvshow']             = normalizeString(xbmc.getInfoLabel("VideoPlayer.TVshowtitle"))   # Show
-        item['title']              = normalizeString(xbmc.getInfoLabel("VideoPlayer.OriginalTitle")) # try to get original title
-        item['file_original_path'] = urllib.unquote(xbmc.Player().getPlayingFile().decode('utf-8'))  # Full path of a playing file
+        item['year']               = xbmc.getInfoLabel("VideoPlayer.Year")
+        item['season']             = str(xbmc.getInfoLabel("VideoPlayer.Season"))
+        item['episode']            = str(xbmc.getInfoLabel("VideoPlayer.Episode"))
+        item['tvshow']             = normalizeString(xbmc.getInfoLabel("VideoPlayer.TVshowtitle"))
+        # Try to get original title
+        item['title']              = normalizeString(xbmc.getInfoLabel("VideoPlayer.OriginalTitle"))
+        # Full path of a playing file
+        item['file_original_path'] = urllib.unquote(xbmc.Player().getPlayingFile().decode('utf-8'))
         item['3let_language']      = []
         item['2let_language']      = []
 
@@ -334,7 +352,7 @@ def main():
             item['2let_language'].append(xbmc.convertLanguage(lang, xbmc.ISO_639_1))
 
         if not item['title']:
-            # no original title, get just Title
+            # No original title, get just Title
             item['title']  = normalizeString(xbmc.getInfoLabel("VideoPlayer.Title"))
 
         if "s" in item['episode'].lower():
@@ -356,16 +374,17 @@ def main():
         Search(item)
 
     elif params['action'] == 'download':
-        # we pickup all our arguments sent from def Search()
+        # We pickup all our arguments sent from def Search()
         subs = Download(params["id"], params["filename"])
-        # we can return more than one subtitle for multi CD versions, for now we
-        # are still working out how to handle that in XBMC core
+        # We can return more than one subtitle for multi CD versions, for now
+        # we are still working out how to handle that in XBMC core
         for sub in subs:
             listitem = xbmcgui.ListItem(label=sub)
             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=sub, listitem=listitem, isFolder=False)
 
     # Send end of directory to XBMC
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
+
 
 if __name__ == '__main__':
     main()
