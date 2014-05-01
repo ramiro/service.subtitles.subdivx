@@ -64,13 +64,19 @@ HTTP_USER_AGENT = "User-Agent=Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv
 # <div id="buscador_detalle_sub">Para la versión Iron.Man.2.2010.480p.BRRip.XviD.AC3-EVO, sacados de acá. ¡Disfruten!</div><div id="buscador_detalle_sub_datos"><b>Downloads:</b> 4673 <b>Cds:</b> 1 <b>Comentarios:</b> <a rel="nofollow" href="popcoment.php?idsub=MjEzMzIy" onclick="return hs.htmlExpand(this, { objectType: 'iframe' } )">14</a> <b>Formato:</b> SubRip <b>Subido por:</b> <a class="link1" href="http://www.subdivx.com/X9X303157">TrueSword</a> <img src="http://www.subdivx.com/pais/2.gif" width="16" height="12"> <b>el</b> 06/09/2010  </a></div></div>
 # <div id="menu_detalle_buscador">
 
-SUBTITLE_RE = re.compile(r'<a\s+class="titulo_menu_izq"\s+href="http://www.subdivx.com/(.+?)\.html">.+?<div\s+id="buscador_detalle_sub">(.*?)</div>.+?<b>Downloads:</b>(.+?)<b>Cds:</b>.+?</div></div>',
-                         re.IGNORECASE | re.DOTALL | re.MULTILINE | re.UNICODE)
-# group(1) = id to fetch the subs files
-# group(2) = user comments, may content filename
-# group(3) = downloads used for ratings
+SUBTITLE_RE = re.compile(r'''<a\s+class="titulo_menu_izq"\s+
+                         href="http://www.subdivx.com/(?P<id>.+?)\.html">
+                         .+?<div\s+id="buscador_detalle_sub">(?P<comment>.*?)</div>
+                         .+?<b>Downloads:</b>(?P<downloads>.+?)
+                         <b>Cds:</b>.+?</div></div>''',
+                         re.IGNORECASE | re.DOTALL | re.VERBOSE | re.UNICODE |
+                         re.MULTILINE)
+# 'id' named group: ID to fetch the subs files
+# 'comment' named group: Translation author comment, may contain filename
+# 'downloads' named group: Downloads, used for ratings
 
-DOWNLOAD_LINK_RE = re.compile(r'bajar.php\?id=(.*?)&u=(.*?)\"', re.IGNORECASE | re.DOTALL | re.MULTILINE | re.UNICODE)
+DOWNLOAD_LINK_RE = re.compile(r'bajar.php\?id=(.*?)&u=(.*?)\"', re.IGNORECASE |
+                              re.DOTALL | re.MULTILINE | re.UNICODE)
 
 # ==========
 # Functions
@@ -104,58 +110,64 @@ def geturl(url):
 def getallsubs(searchstring, languageshort, languagelong, file_original_path):
     subtitles_list = []
     if languageshort == "es":
-        page = 1
-        url = SEARCH_PAGE_URL % {'page': page, 'query': urllib.quote_plus(searchstring)}
-        content = geturl(url)
         log(u"Getting '%s' subs ..." % languageshort)
-
-        while SUBTITLE_RE.search(content):
-            for matches in SUBTITLE_RE.finditer(content):
-                id = matches.group(1)
-                downloads = int(re.sub(r'[,.]', '', matches.group(3)))
+        title_words = re.split('[\W]+', searchstring)
+        page = 1
+        while True:
+            url = SEARCH_PAGE_URL % {'page': page,
+                                     'query': urllib.quote_plus(searchstring)}
+            content = geturl(url)
+            if content is None or not SUBTITLE_RE.search(content):
+                break
+            for match in SUBTITLE_RE.finditer(content):
+                id = match.groupdict()['id']
+                dls = re.sub(r'[,.]', '', match.groupdict()['downloads'])
+                downloads = int(dls)
                 rating = downloads / 1000
                 if rating > 10:
                     rating = 10
-                comment = matches.group(2)
-                filename = comment.strip()
-                # Remove new lines on the comments
-                filename = re.sub('\n', ' ', filename)
-                # Remove Google Ads on the comments
-                filename = re.sub(r'<script.+?script>', '', filename, re.IGNORECASE | re.DOTALL | re.MULTILINE | re.UNICODE)
-                # Remove HTML tags on the commentaries
-                filename = re.sub(r'<[^<]+?>', '', filename)
-                # Find filename on the comments to show sync label
-                filesearch = os.path.split(file_original_path)
-                sync = False
-                if re.search(filesearch[1][:len(filesearch[1])-4], filename):
-                    sync = True
+                description = match.groupdict()['comment']
+                text = description.strip()
+                # Remove new lines
+                text = re.sub('\n', ' ', text)
+                # Remove Google Ads
+                text = re.sub(r'<script.+?script>', '', text,
+                              re.IGNORECASE | re.DOTALL | re.MULTILINE |
+                              re.UNICODE)
+                # Remove HTML tags
+                text = re.sub(r'<[^<]+?>', '', text)
+                # If our actual video file's name appears in the description
+                # then set sync to True because it has better chances if its
+                # synchronization to match it
+                _, fn = os.path.split(file_original_path)
+                name, _ = os.path.splitext(fn)
+                sync = re.search(re.escape(name), text, re.I) is not None
                 try:
-                    log(u"Subtitles found: %s (id = %s)" %  (filename, id))
+                    log(u"Subtitles found: %s (id = %s)" % (text, id))
                 except Exception:
                     pass
-                # Find filename in the comments and put it in front
-                title_first_word = re.split('[\W]+', searchstring)
-                comments_list = re.split('\s', filename)
+                # If the filename appears in the description put it in front
+                descr_words = re.split(r'\s', text)
                 n = 0
                 version = None
-                while n < len(comments_list) and version is None:
-                    version = re.search(title_first_word[0], comments_list[n], re.IGNORECASE | re.DOTALL | re.MULTILINE | re.UNICODE)
+                while n < len(descr_words) and version is None:
+                    version = re.search(title_words[0], descr_words[n],
+                                        re.IGNORECASE | re.DOTALL |
+                                        re.MULTILINE | re.UNICODE)
                     n += 1
                 if version:
-                    filename = comments_list[n-1] + " | " + filename
-                # End of filename search
+                    text = descr_words[n-1] + " | " + text
+                 End of filename search
                 item = {
                     'rating': str(rating),
-                    'filename': filename,
+                    'filename': text.decode('latin1'),
                     'sync': sync,
-                    'id' : id,
-                    #'language_flag': 'flags/' + languageshort + '.gif',
+                    'id': id,
+                    # 'language_flag': 'flags/' + languageshort + '.gif',
                     'language_name': languagelong,
                 }
                 subtitles_list.append(item)
             page += 1
-            url = SEARCH_PAGE_URL % {'page': page, 'query': urllib.quote_plus(searchstring)}
-            content = geturl(url)
 
         # Bubble sort, to put syncs on top
         for n in range(len(subtitles_list)):
@@ -170,32 +182,36 @@ def getallsubs(searchstring, languageshort, languagelong, file_original_path):
 
 def append_subtitle(item):
     listitem = xbmcgui.ListItem(
-                   label=item['language_name'],
-                   label2=item['filename'],
-                   iconImage=item['rating'],
-                   thumbnailImage='es'
-               )
+        label=item['language_name'],
+        label2=item['filename'],
+        iconImage=item['rating'],
+        thumbnailImage='es'
+    )
 
     listitem.setProperty("sync", 'true' if item["sync"] else 'false')
     listitem.setProperty("hearing_imp", 'true' if item.get("hearing_imp", False) else 'false')
 
     # Below arguments are optional, it can be used to pass any info needed in
     # download function anything after "action=download&" will be sent to addon
-    # once user clicks listed subtitle to downlaod
+    # once user clicks listed subtitle to download
     args = dict(item)
     args['scriptid'] = __scriptid__
     url = INTERNAL_LINK_URL % args
 
     # Add it to list, this can be done as many times as needed for all
     # subtitles found
-    xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=url, listitem=listitem, isFolder=False)
+    xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),
+                                url=url,
+                                listitem=listitem,
+                                isFolder=False)
 
 
 def Search(item):
     """Called when searching for subtitles from XBMC."""
     # Do what's needed to get the list of subtitles from service site
-    # use item["some_property"] that was set earlier
-    # once done, set xbmcgui.ListItem() below and pass it to xbmcplugin.addDirectoryItem()
+    # use item["some_property"] that was set earlier.
+    # Once done, set xbmcgui.ListItem() below and pass it to
+    # xbmcplugin.addDirectoryItem()
     file_original_path = item['file_original_path']
     title = item['title']
     tvshow = item['tvshow']
@@ -353,7 +369,7 @@ def main():
 
         if not item['title']:
             # No original title, get just Title
-            item['title']  = normalizeString(xbmc.getInfoLabel("VideoPlayer.Title"))
+            item['title'] = normalizeString(xbmc.getInfoLabel("VideoPlayer.Title"))
 
         if "s" in item['episode'].lower():
             # Check if season is "Special"
