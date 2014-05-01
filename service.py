@@ -78,7 +78,7 @@ def geturl(url):
     try:
         response = my_urlopener.open(url)
         content = response.read()
-    except:
+    except Exception:
         log(u"Failed to get url:%s" % (url,))
         content = None
     return content
@@ -113,7 +113,7 @@ def getallsubs(searchstring, languageshort, languagelong, file_original_path):
                     sync = True
                 try:
                     log(u"Subtitles found: %s (id = %s)" %  (filename, id))
-                except:
+                except Exception:
                     pass
                 # Find filename on the commentaries and put it in front
                 title_first_word = re.split('[\W]+', searchstring)
@@ -228,7 +228,7 @@ def Download(id, filename):
             local_file_handle = open(local_tmp_file, "wb")
             local_file_handle.write(content)
             local_file_handle.close()
-        except:
+        except Exception:
             log(u"Failed to save subtitles to '%s'" % (local_tmp_file,))
         if packed:
             files = os.listdir(__temp__)
