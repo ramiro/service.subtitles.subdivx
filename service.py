@@ -108,7 +108,7 @@ def geturl(url):
 
 
 def getallsubs(searchstring, languageshort, languagelong, file_original_path):
-    subtitles_list = []
+    subs_list = []
     if languageshort == "es":
         log(u"Getting '%s' subs ..." % languageshort)
         page = 1
@@ -153,18 +153,13 @@ def getallsubs(searchstring, languageshort, languagelong, file_original_path):
                     # 'language_flag': 'flags/' + languageshort + '.gif',
                     'language_name': languagelong,
                 }
-                subtitles_list.append(item)
+                subs_list.append(item)
             page += 1
 
-        # Bubble sort, to put syncs on top
-        for n in range(len(subtitles_list)):
-            for i in range(1, len(subtitles_list)):
-                temp = subtitles_list[i]
-                if subtitles_list[i]["sync"] > subtitles_list[i - 1]["sync"]:
-                    subtitles_list[i] = subtitles_list[i - 1]
-                    subtitles_list[i - 1] = temp
+        # Put subs with sync=True at the top
+        subs_list = sorted(subs_list, key=lambda s: s['sync'], reverse=True)
 
-    return subtitles_list
+    return subs_list
 
 
 def append_subtitle(item):
