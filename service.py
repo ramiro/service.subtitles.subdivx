@@ -53,6 +53,13 @@ INTERNAL_LINK_URL = "plugin://%(scriptid)s/?action=download&id=%(id)s&filename=%
 SUB_EXTS = ['srt', 'sub', 'txt']
 HTTP_USER_AGENT = "User-Agent=Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.2.3) Gecko/20100401 Firefox/3.6.3 ( .NET CLR 3.5.30729)"
 
+
+def is_subs_file(fn):
+    """Detect if the file has an extension we recognise as subtitle."""
+    ext = fn.split('.')[-1]
+    return ext.upper() in [e.upper() for e in SUB_EXTS]
+
+
 # ============================
 # Regular expression patterns
 # ============================
@@ -255,12 +262,12 @@ def Download(id, filename):
         if packed:
             files = os.listdir(__temp__)
             init_filecount = len(files)
-            log(u"subdivx: número de init_filecount %s" % init_filecount)
+            log(u"subdivx: init_filecount = %d" % init_filecount)
             filecount = init_filecount
             max_mtime = 0
             # Determine the newest file from __temp__
             for file in files:
-                if file.split('.')[-1] in SUB_EXTS:
+                if is_subs_file(file):
                     mtime = os.stat(pjoin(__temp__, file)).st_mtime
                     if mtime > max_mtime:
                         max_mtime = mtime
@@ -268,18 +275,20 @@ def Download(id, filename):
             # Wait 2 seconds so that the unpacked files are at least 1 second
             # newer
             time.sleep(2)
-            xbmc.executebuiltin("XBMC.Extract(" + local_tmp_file.encode("utf-8") + ", " + __temp__.encode("utf-8") +")")
+            xbmc.executebuiltin("XBMC.Extract(%s, %s)" % (
+                                local_tmp_file.encode("utf-8"),
+                                __temp__.encode("utf-8")))
             waittime = 0
             while filecount == init_filecount and waittime < 20 and init_max_mtime == max_mtime:
                 # Nothing yet extracted
                 time.sleep(1)  # wait 1 second to let the builtin function
-                               # 'XBMC.extract' unpack
+                               # 'XBMC.Extract' unpack
                 files = os.listdir(__temp__)
                 filecount = len(files)
                 # Determine if there is a newer file created in __temp__ (marks
                 # that the extraction had completed)
                 for file in files:
-                    if file.split('.')[-1] in SUB_EXTS:
+                    if is_subs_file(file):
                         mtime = os.stat(pjoin(__temp__, file.decode("utf-8"))).st_mtime
                         if mtime > max_mtime:
                             max_mtime = mtime
@@ -291,7 +300,7 @@ def Download(id, filename):
                 for file in files:
                     # There could be more subtitle files in __temp__, so make
                     # sure we get the newly created subtitle file
-                    if file.split('.')[-1] in SUB_EXTS and os.stat(pjoin(__temp__, file)).st_mtime > init_max_mtime:
+                    if is_subs_file(file) and os.stat(pjoin(__temp__, file)).st_mtime > init_max_mtime:
                         # unpacked file is a newly created subtitle file
                         log(u"Unpacked subtitles file '%s'" % (file,))
                         subs_file = pjoin(__temp__, file.decode("utf-8"))
