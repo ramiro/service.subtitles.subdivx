@@ -306,22 +306,19 @@ def normalizeString(str):
 
 
 def get_params():
-    param = []
-    paramstring = sys.argv[2]
-    if len(paramstring) >= 2:
-        params = paramstring
-        cleanedparams = params.replace('?', '')
-        if params.endswith('/'):
-            params = params[:-2]  # XXX: Should be [:-1] ?
-        pairsofparams = cleanedparams.split('&')
-        param = {}
-        for pair in pairsofparams:
-            splitparams = {}
-            splitparams = pair.split('=')
-            if len(splitparams) == 2:
-                param[splitparams[0]] = splitparams[1]
+    params = {}
+    arg = sys.argv[2]
+    if len(arg) >= 2:
+        value = arg
+        if value.endswith('/'):
+            value = value[:-2]  # XXX: Should be [:-1] ?
+        cleaned = value.replace('?', '')
+        for elem in cleaned.split('&'):
+            kv = elem.split('=')
+            if len(kv) == 2:
+                params[kv[0]] = kv[1]
 
-    return param
+    return params
 
 
 def main():
