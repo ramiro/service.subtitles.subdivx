@@ -321,7 +321,7 @@ def get_params():
     if len(arg) >= 2:
         value = arg
         if value.endswith('/'):
-            value = value[:-2]  # XXX: Should be [:-1] ?
+            value = value[:-1]
         cleaned = value.replace('?', '')
         for elem in cleaned.split('&'):
             kv = elem.split('=')
