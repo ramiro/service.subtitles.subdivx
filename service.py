@@ -71,7 +71,7 @@ def is_subs_file(fn):
 # <div id="buscador_detalle_sub">Para la versión Iron.Man.2.2010.480p.BRRip.XviD.AC3-EVO, sacados de acá. ¡Disfruten!</div><div id="buscador_detalle_sub_datos"><b>Downloads:</b> 4673 <b>Cds:</b> 1 <b>Comentarios:</b> <a rel="nofollow" href="popcoment.php?idsub=MjEzMzIy" onclick="return hs.htmlExpand(this, { objectType: 'iframe' } )">14</a> <b>Formato:</b> SubRip <b>Subido por:</b> <a class="link1" href="http://www.subdivx.com/X9X303157">TrueSword</a> <img src="http://www.subdivx.com/pais/2.gif" width="16" height="12"> <b>el</b> 06/09/2010  </a></div></div>
 # <div id="menu_detalle_buscador">
 
-SUBTITLE_RE = re.compile(r'''<a\s+class="titulo_menu_izq"\s+
+SUBTITLE_RE = re.compile(r'''<a\s+class="titulo_menu_izq2?"\s+
                          href="http://www.subdivx.com/(?P<id>.+?)\.html">
                          .+?<div\s+id="buscador_detalle_sub">(?P<comment>.*?)</div>
                          .+?<b>Downloads:</b>(?P<downloads>.+?)
