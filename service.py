@@ -77,7 +77,8 @@ SUBTITLE_RE = re.compile(r'''<a\s+class="titulo_menu_izq2?"\s+
                          href="http://www.subdivx.com/(?P<id>.+?)\.html">
                          .+?<div\s+id="buscador_detalle_sub">(?P<comment>.*?)</div>
                          .+?<b>Downloads:</b>(?P<downloads>.+?)
-                         <b>Cds:</b>.+?</div></div>''',
+                         <b>Cds:</b>
+                         .+?<b>Subido\ por:</b>\s*<a.+?>(?P<uploader>.+?)</a>.+?</div></div>''',
                          re.IGNORECASE | re.DOTALL | re.VERBOSE | re.UNICODE |
                          re.MULTILINE)
 # 'id' named group: ID to fetch the subs files
@@ -155,8 +156,8 @@ def get_all_subs(searchstring, languageshort, languagelong, file_original_path):
                     'filename': text.decode('latin1'),
                     'sync': sync,
                     'id': id,
-                    # 'language_flag': 'flags/' + languageshort + '.gif',
                     'language_name': languagelong,
+                    'uploader': match.groupdict()['uploader'],
                 }
                 subs_list.append(item)
             page += 1
@@ -169,8 +170,12 @@ def get_all_subs(searchstring, languageshort, languagelong, file_original_path):
 
 
 def append_subtitle(item):
+    if __addon__.getSetting('show_nick_in_place_of_lang') == 'true':
+        item_label = item['uploader']
+    else:
+        item_label = item['language_name']
     listitem = xbmcgui.ListItem(
-        label=item['language_name'],
+        label=item_label,
         label2=item['filename'],
         iconImage=item['rating'],
         thumbnailImage='es'
