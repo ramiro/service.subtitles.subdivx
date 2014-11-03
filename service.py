@@ -225,8 +225,67 @@ def Search(item):
         append_subtitle(sub)
 
 
+def _wait_for_extract(base_filecount, base_mtime, limit):
+    waittime = 0
+    filecount = base_filecount
+    newest_mtime = base_mtime
+    while (filecount == base_filecount and waittime < limit and
+           newest_mtime == base_mtime):
+        # wait 1 second to let the builtin function 'XBMC.Extract' unpack
+        time.sleep(1)
+        files = os.listdir(__temp__)
+        filecount = len(files)
+        # Determine if there is a newer file created (marks that the extraction
+        # has completed)
+        for fname in files:
+            if not is_subs_file(fname):
+                continue
+            fname = fname.decode('utf-8')
+            mtime = os.stat(pjoin(__temp__, fname)).st_mtime
+            if mtime > newest_mtime:
+                newest_mtime = mtime
+        waittime += 1
+    return waittime != limit
+
+
+def _handle_compressed_subs(compressed_file):
+
+    MAX_UNZIP_WAIT = 10
+    files = os.listdir(__temp__)
+    filecount = len(files)
+    max_mtime = 0
+    # Determine the newest file from __temp__
+    for fname in files:
+        if not is_subs_file(fname):
+            continue
+        mtime = os.stat(pjoin(__temp__, fname)).st_mtime
+        if mtime > max_mtime:
+            max_mtime = mtime
+    base_mtime = max_mtime
+    # Wait 2 seconds so that the unpacked files are at least 1 second newer
+    time.sleep(2)
+    xbmc.executebuiltin("XBMC.Extract(%s, %s)" % (
+                        compressed_file.encode("utf-8"),
+                        __temp__.encode("utf-8")))
+    retval = False, None
+    if _wait_for_extract(filecount, base_mtime, MAX_UNZIP_WAIT):
+        log(u"Unpacked files in '%s'" % __temp__)
+        files = os.listdir(__temp__)
+        for fname in files:
+            ffname = pjoin(__temp__, fname.decode("utf-8"))
+            # There could be more subtitle files in __temp__, so make
+            # sure we get the newly created subtitle file
+            if is_subs_file(fname) and os.stat(ffname).st_mtime > base_mtime:
+                # unpacked file is a newly created subtitle file
+                log(u"Unpacked subtitles file '%s'" % ffname)
+                retval = True, ffname
+    else:
+        log(u"Failed to unpack subtitles in '%s'" % __temp__)
+    return retval
+
+
 def Download(id, filename):
-    """Called when subtitle download request from XBMC."""
+    """Called when subtitle download is requested from XBMC."""
     # Cleanup temp dir, we recommend you download/unzip your subs in temp folder
     # and pass that to XBMC to copy and activate
     if xbmcvfs.exists(__temp__):
@@ -264,55 +323,13 @@ def Download(id, filename):
             local_file_handle.close()
         except Exception:
             log(u"Failed to save subtitles to '%s'" % local_tmp_file)
-        if packed:
-            files = os.listdir(__temp__)
-            init_filecount = len(files)
-            log(u"init_filecount = %d" % init_filecount)
-            filecount = init_filecount
-            max_mtime = 0
-            # Determine the newest file from __temp__
-            for file in files:
-                if is_subs_file(file):
-                    mtime = os.stat(pjoin(__temp__, file)).st_mtime
-                    if mtime > max_mtime:
-                        max_mtime = mtime
-            init_max_mtime = max_mtime
-            # Wait 2 seconds so that the unpacked files are at least 1 second
-            # newer
-            time.sleep(2)
-            xbmc.executebuiltin("XBMC.Extract(%s, %s)" % (
-                                local_tmp_file.encode("utf-8"),
-                                __temp__.encode("utf-8")))
-            waittime = 0
-            while filecount == init_filecount and waittime < 20 and init_max_mtime == max_mtime:
-                # Nothing yet extracted
-                time.sleep(1)  # wait 1 second to let the builtin function
-                               # 'XBMC.Extract' unpack
-                files = os.listdir(__temp__)
-                filecount = len(files)
-                # Determine if there is a newer file created in __temp__ (marks
-                # that the extraction had completed)
-                for file in files:
-                    if is_subs_file(file):
-                        mtime = os.stat(pjoin(__temp__, file.decode("utf-8"))).st_mtime
-                        if mtime > max_mtime:
-                            max_mtime = mtime
-                waittime = waittime + 1
-            if waittime == 20:
-                log(u"Failed to unpack subtitles in '%s'" % __temp__)
-            else:
-                log(u"Unpacked files in '%s'" % __temp__)
-                for file in files:
-                    # There could be more subtitle files in __temp__, so make
-                    # sure we get the newly created subtitle file
-                    if is_subs_file(file) and os.stat(pjoin(__temp__, file)).st_mtime > init_max_mtime:
-                        # unpacked file is a newly created subtitle file
-                        log(u"Unpacked subtitles file '%s'" % file)
-                        subs_file = pjoin(__temp__, file.decode("utf-8"))
-                        subtitles_list.append(subs_file)
-                        break
         else:
-            subtitles_list.append(subs_file)
+            if packed:
+                rval, fname = _handle_compressed_subs(local_tmp_file)
+                if rval:
+                    subtitles_list.append(fname)
+            else:
+                subtitles_list.append(subs_file)
     return subtitles_list
 
 
