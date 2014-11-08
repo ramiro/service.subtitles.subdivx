@@ -55,6 +55,8 @@ INTERNAL_LINK_URL = "plugin://%(scriptid)s/?action=download&id=%(id)s&filename=%
 SUB_EXTS = ['srt', 'sub', 'txt']
 HTTP_USER_AGENT = "User-Agent=Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.2.3) Gecko/20100401 Firefox/3.6.3 ( .NET CLR 3.5.30729)"
 
+PAGE_ENCODING = 'latin1'
+
 
 def is_subs_file(fn):
     """Detect if the file has an extension we recognise as subtitle."""
@@ -153,9 +155,9 @@ def get_all_subs(searchstring, languageshort, languagelong, file_original_path):
                     pass
                 item = {
                     'rating': str(rating),
-                    'filename': text.decode('latin1'),
+                    'filename': text.decode(PAGE_ENCODING),
                     'sync': sync,
-                    'id': id,
+                    'id': id.decode(PAGE_ENCODING),
                     'language_name': languagelong,
                     'uploader': match.groupdict()['uploader'],
                 }
