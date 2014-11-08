@@ -250,13 +250,25 @@ def _wait_for_extract(base_filecount, base_mtime, limit):
     return waittime != limit
 
 
+def _empty_dir(dirname, compressed_file):
+    for fname in os.listdir(dirname):
+        fpath = pjoin(dirname, fname)
+        try:
+            if os.path.isfile(fpath) and fpath != compressed_file:
+                os.unlink(fpath)
+        except Exception as e:
+            log(u"Error removing file %s: %s" % (fname, e))
+
+
 def _handle_compressed_subs(compressed_file, type):
-    MAX_UNZIP_WAIT = 20
+    MAX_UNZIP_WAIT = 15
+    if type == '.rar':
+        _empty_dir(__temp__, compressed_file)
     files = os.listdir(__temp__)
     filecount = len(files)
     max_mtime = 0
     subs_before = []
-    # Determine the newest file from __temp__
+    # Determine the newest file
     for fname in files:
         if not is_subs_file(fname):
             continue
@@ -276,14 +288,15 @@ def _handle_compressed_subs(compressed_file, type):
     files = os.listdir(__temp__)
     subs_after = []
     for fname in files:
-        fpath = pjoin(__temp__, fname.decode("utf-8"))
         # There could be more subtitle files in __temp__, so make
         # sure we get the newly created subtitle file
-        if is_subs_file(fname):
-            subs_after.append(fname)
-            if os.stat(fpath).st_mtime > base_mtime and x:
-                # unpacked file is a newly created subtitle file
-                retval = True
+        if not is_subs_file(fname):
+            continue
+        fpath = pjoin(__temp__, fname.decode("utf-8"))
+        subs_after.append(fname)
+        if os.stat(fpath).st_mtime > base_mtime and x:
+            # unpacked file is a newly created subtitle file
+            retval = True
     subs_after = set(subs_after)
     # rar unpacking can extract files preserving their mtime so the above
     # detection fails, fallback to detect dir contents changes
@@ -300,7 +313,7 @@ def _handle_compressed_subs(compressed_file, type):
     if retval:
         log(u"Unpacked subtitles file '%s'" % fpath)
     else:
-        log(u"Failed to unpack subtitles in '%s'" % __temp__)
+        log(u"Failed to unpack subtitles")
     return retval, fpath
 
 
