@@ -9,7 +9,7 @@
   <extension point="xbmc.subtitle.module"
              library="service.py" />
   <extension point="xbmc.addon.metadata">
-    <summary lang="en">Subidivx.com</summary>
+    <summary lang="en">Subdivx.com</summary>
     <description lang="en">Search and download subtitles from Subdivx.com</description>
     <disclaimer lang="en"></disclaimer>
     <language>es en</language>
