@@ -391,6 +391,7 @@ def get_params(argv):
 
 def main():
     """Main entry point of the script when it is invoked by XBMC."""
+    log(u"Version: %s" % __version__)
 
     # Get parameters from XBMC and launch actions
     params = get_params(sys.argv)
