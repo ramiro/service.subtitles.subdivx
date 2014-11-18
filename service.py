@@ -7,6 +7,7 @@
 from __future__ import print_function
 import os
 from os.path import join as pjoin
+import os.path
 from pprint import pformat
 import re
 import shutil
@@ -43,7 +44,6 @@ __language__   = __addon__.getLocalizedString
 __cwd__        = xbmc.translatePath(__addon__.getAddonInfo('path')).decode("utf-8")
 __profile__    = xbmc.translatePath(__addon__.getAddonInfo('profile')).decode("utf-8")
 __resource__   = xbmc.translatePath(pjoin(__cwd__, 'resources', 'lib')).decode("utf-8")
-__temp__       = xbmc.translatePath(pjoin(__profile__, 'temp')).decode("utf-8")
 
 sys.path.append(__resource__)
 
@@ -228,7 +228,7 @@ def Search(item):
         append_subtitle(sub)
 
 
-def _wait_for_extract(base_filecount, base_mtime, limit):
+def _wait_for_extract(workdir, base_filecount, base_mtime, limit):
     waittime = 0
     filecount = base_filecount
     newest_mtime = base_mtime
@@ -236,7 +236,7 @@ def _wait_for_extract(base_filecount, base_mtime, limit):
            newest_mtime == base_mtime):
         # wait 1 second to let the builtin function 'XBMC.Extract' unpack
         time.sleep(1)
-        files = os.listdir(__temp__)
+        files = os.listdir(workdir)
         filecount = len(files)
         # Determine if there is a newer file created (marks that the extraction
         # has completed)
@@ -244,7 +244,7 @@ def _wait_for_extract(base_filecount, base_mtime, limit):
             if not is_subs_file(fname):
                 continue
             fname = fname.decode('utf-8')
-            mtime = os.stat(pjoin(__temp__, fname)).st_mtime
+            mtime = os.stat(pjoin(workdir, fname)).st_mtime
             if mtime > newest_mtime:
                 newest_mtime = mtime
         waittime += 1
@@ -261,11 +261,11 @@ def _empty_dir(dirname, compressed_file):
             log(u"Error removing file %s: %s" % (fname, e))
 
 
-def _handle_compressed_subs(compressed_file, type):
+def _handle_compressed_subs(workdir, compressed_file, type):
     MAX_UNZIP_WAIT = 15
     if type == '.rar':
-        _empty_dir(__temp__, compressed_file)
-    files = os.listdir(__temp__)
+        _empty_dir(workdir, compressed_file)
+    files = os.listdir(workdir)
     filecount = len(files)
     max_mtime = 0
     subs_before = []
@@ -274,7 +274,7 @@ def _handle_compressed_subs(compressed_file, type):
         if not is_subs_file(fname):
             continue
         subs_before.append(fname)
-        mtime = os.stat(pjoin(__temp__, fname)).st_mtime
+        mtime = os.stat(pjoin(workdir, fname)).st_mtime
         if mtime > max_mtime:
             max_mtime = mtime
     subs_before = set(subs_before)
@@ -283,17 +283,17 @@ def _handle_compressed_subs(compressed_file, type):
     time.sleep(2)
     xbmc.executebuiltin("XBMC.Extract(%s, %s)" % (
                         compressed_file.encode("utf-8"),
-                        __temp__.encode("utf-8")))
+                        workdir.encode("utf-8")))
     retval, fpath = False, None
-    x = _wait_for_extract(filecount, base_mtime, MAX_UNZIP_WAIT)
-    files = os.listdir(__temp__)
+    x = _wait_for_extract(workdir, filecount, base_mtime, MAX_UNZIP_WAIT)
+    files = os.listdir(workdir)
     subs_after = []
     for fname in files:
         # There could be more subtitle files in __temp__, so make
         # sure we get the newly created subtitle file
         if not is_subs_file(fname):
             continue
-        fpath = pjoin(__temp__, fname.decode("utf-8"))
+        fpath = pjoin(workdir, fname.decode("utf-8"))
         subs_after.append(fname)
         if os.stat(fpath).st_mtime > base_mtime and x:
             # unpacked file is a newly created subtitle file
@@ -305,7 +305,7 @@ def _handle_compressed_subs(compressed_file, type):
         log(u"Falling back to RAR file strategy")
         new_files = subs_after - subs_before
         if new_files:
-            fpath = pjoin(__temp__, new_files.pop().decode("utf-8"))
+            fpath = pjoin(workdir, new_files.pop().decode("utf-8"))
             log(u"Choosing first new file detected: %s" % fpath)
             retval = True
         else:
@@ -318,7 +318,7 @@ def _handle_compressed_subs(compressed_file, type):
     return retval, fpath
 
 
-def _save_subtitles(content):
+def _save_subtitles(workdir, content):
     header = content[:4]
     if header == 'Rar!':
         type = '.rar'
@@ -332,7 +332,7 @@ def _save_subtitles(content):
         # Assume unpacked sub file is a '.srt'
         type = '.srt'
         is_compressed = False
-    tmp_fname = pjoin(__temp__, "subdivx" + type)
+    tmp_fname = pjoin(workdir, "subdivx" + type)
     log(u"Saving subtitles to '%s'" % tmp_fname)
     try:
         with open(tmp_fname, "wb") as fh:
@@ -342,20 +342,20 @@ def _save_subtitles(content):
         return None
     else:
         if is_compressed:
-            rval, fname = _handle_compressed_subs(tmp_fname, type)
+            rval, fname = _handle_compressed_subs(workdir, tmp_fname, type)
             if rval:
                 return fname
         else:
             return tmp_fname
 
 
-def Download(id, filename):
+def Download(id, workdir):
     """Called when subtitle download is requested from XBMC."""
     # Cleanup temp dir, we recommend you download/unzip your subs in temp
     # folder and pass that to XBMC to copy and activate
-    if xbmcvfs.exists(__temp__):
-        shutil.rmtree(__temp__)
-    xbmcvfs.mkdirs(__temp__)
+    if xbmcvfs.exists(workdir):
+        shutil.rmtree(workdir)
+        xbmcvfs.mkdirs(workdir)
 
     subtitles_list = []
     # Get the page with the subtitle link,
@@ -367,7 +367,7 @@ def Download(id, filename):
     actual_subtitle_file_url = MAIN_SUBDIVX_URL + "bajar.php?id=" + match[0][0] + "&u=" + match[0][1]
     content = get_url(actual_subtitle_file_url)
     if content is not None:
-        saved_fname = _save_subtitles(content)
+        saved_fname = _save_subtitles(workdir, content)
         if saved_fname:
             subtitles_list.append(saved_fname)
     return subtitles_list
@@ -437,8 +437,13 @@ def main():
         Search(item)
 
     elif params['action'] == 'download':
-        # We pickup all our arguments sent from the Search() function
-        subs = Download(params["id"], params["filename"])
+        workdir = pjoin(__profile__, 'temp')
+        # Make sure it ends with a path separator (Kodi 14)
+        workdir = workdir + os.path.sep
+        workdir = xbmc.translatePath(workdir).decode("utf-8")
+
+        # We pickup our arguments sent from the Search() function
+        subs = Download(params["id"], workdir)
         # We can return more than one subtitle for multi CD versions, for now
         # we are still working out how to handle that in XBMC core
         for sub in subs:
