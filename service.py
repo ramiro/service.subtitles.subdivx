@@ -106,12 +106,12 @@ def get_url(url):
         # version = HTTP_USER_AGENT
         version = ''
     my_urlopener = MyOpener()
-    log(u"get_url(): Getting url %s" % url)
+    log(u"get_url(): Fetching %s" % url)
     try:
         response = my_urlopener.open(url)
         content = response.read()
     except Exception:
-        log(u"get_url(): Failed to get url: %s" % url)
+        log(u"get_url(): Failed to fetch %s" % url)
         content = None
     return content
 
