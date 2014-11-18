@@ -77,6 +77,7 @@ def is_subs_file(fn):
 
 SUBTITLE_RE = re.compile(r'''<a\s+class="titulo_menu_izq2?"\s+
                          href="http://www.subdivx.com/(?P<id>.+?)\.html">
+                         .+?<img\s+src="img/calif(?P<calif>\d)\.gif"\s+class="detalle_calif"\s+name="detalle_calif">
                          .+?<div\s+id="buscador_detalle_sub">(?P<comment>.*?)</div>
                          .+?<b>Downloads:</b>(?P<downloads>.+?)
                          <b>Cds:</b>
@@ -116,58 +117,66 @@ def get_url(url):
     return content
 
 
-def get_all_subs(searchstring, languageshort, languagelong, file_original_path):
+def _downloads2rating(downloads):
+    rating = downloads / 1000
+    if rating > 10:
+        rating = 10
+    return rating
+
+
+def get_all_subs(searchstring, languageshort, languagelong, file_orig_path):
+    if languageshort != "es":
+        return []
+    log(u"Getting spanish subs")
     subs_list = []
-    if languageshort == "es":
-        log(u"Getting '%s' subs ..." % languageshort)
-        page = 1
-        while True:
-            url = SEARCH_PAGE_URL % {'page': page,
-                                     'query': urllib.quote_plus(searchstring)}
-            content = get_url(url)
-            if content is None or not SUBTITLE_RE.search(content):
-                break
-            for match in SUBTITLE_RE.finditer(content):
-                id = match.groupdict()['id']
-                dls = re.sub(r'[,.]', '', match.groupdict()['downloads'])
-                downloads = int(dls)
-                rating = downloads / 1000
-                if rating > 10:
-                    rating = 10
-                description = match.groupdict()['comment']
-                text = description.strip()
-                # Remove new lines
-                text = re.sub('\n', ' ', text)
-                # Remove Google Ads
-                text = re.sub(r'<script.+?script>', '', text,
-                              re.IGNORECASE | re.DOTALL | re.MULTILINE |
-                              re.UNICODE)
-                # Remove HTML tags
-                text = re.sub(r'<[^<]+?>', '', text)
-                # If our actual video file's name appears in the description
-                # then set sync to True because it has better chances of its
-                # synchronization to match
-                _, fn = os.path.split(file_original_path)
-                name, _ = os.path.splitext(fn)
-                sync = re.search(re.escape(name), text, re.I) is not None
-                try:
-                    log(u"Subtitles found: %s (id = %s)" % (text, id))
-                except Exception:
-                    pass
-                item = {
-                    'rating': str(rating),
-                    'filename': text.decode(PAGE_ENCODING),
-                    'sync': sync,
-                    'id': id.decode(PAGE_ENCODING),
-                    'language_name': languagelong,
-                    'uploader': match.groupdict()['uploader'],
-                }
-                subs_list.append(item)
-            page += 1
+    page = 1
+    while True:
+        log(u"Trying page %d" % page)
+        url = SEARCH_PAGE_URL % {'page': page,
+                                 'query': urllib.quote_plus(searchstring)}
+        content = get_url(url)
+        if content is None or not SUBTITLE_RE.search(content):
+            break
+        for match in SUBTITLE_RE.finditer(content):
+            groups = match.groupdict()
+            id = groups['id']
+            dls = re.sub(r'[,.]', '', groups['downloads'])
+            downloads = int(dls)
+            calif = groups['calif']
+            descr = groups['comment']
+            descr = descr.strip()
+            # Remove new lines
+            descr = re.sub('\n', ' ', descr)
+            # Remove Google Ads
+            descr = re.sub(r'<script.+?script>', '', descr,
+                           re.IGNORECASE | re.DOTALL | re.MULTILINE |
+                           re.UNICODE)
+            # Remove HTML tags
+            descr = re.sub(r'<[^<]+?>', '', descr)
+            # If our actual video file's name appears in the description
+            # then set sync to True because it has better chances of its
+            # synchronization to match
+            _, fn = os.path.split(file_orig_path)
+            name, _ = os.path.splitext(fn)
+            sync = re.search(re.escape(name), descr, re.I) is not None
+            try:
+                log(u"Subtitles found: %s (id = %s)" % (descr, id))
+            except Exception:
+                pass
+            item = {
+                'filename': descr.decode(PAGE_ENCODING),
+                'sync': sync,
+                'id': id.decode(PAGE_ENCODING),
+                'language_name': languagelong,
+                'uploader': groups['uploader'],
+                'downloads': downloads,
+                'rating': _downloads2rating(downloads),
+            }
+            subs_list.append(item)
+        page += 1
 
-        # Put subs with sync=True at the top
-        subs_list = sorted(subs_list, key=lambda s: s['sync'], reverse=True)
-
+    # Put subs with sync=True at the top
+    subs_list = sorted(subs_list, key=lambda s: s['sync'], reverse=True)
     log(u"get_all_subs(): Returning %s" % pformat(subs_list))
     return subs_list
 
