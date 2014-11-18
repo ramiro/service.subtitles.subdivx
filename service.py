@@ -127,7 +127,6 @@ def _downloads2rating(downloads):
 def get_all_subs(searchstring, languageshort, languagelong, file_orig_path):
     if languageshort != "es":
         return []
-    log(u"Getting spanish subs")
     subs_list = []
     page = 1
     while True:
@@ -164,13 +163,14 @@ def get_all_subs(searchstring, languageshort, languagelong, file_orig_path):
             except Exception:
                 pass
             item = {
-                'filename': descr.decode(PAGE_ENCODING),
+                'descr': descr.decode(PAGE_ENCODING),
                 'sync': sync,
                 'id': id.decode(PAGE_ENCODING),
                 'language_name': languagelong,
                 'uploader': groups['uploader'],
                 'downloads': downloads,
                 'rating': _downloads2rating(downloads),
+                'filename': file_orig_path,
             }
             subs_list.append(item)
         page += 1
@@ -188,18 +188,17 @@ def append_subtitle(item):
         item_label = item['language_name']
     listitem = xbmcgui.ListItem(
         label=item_label,
-        label2=item['filename'],
-        iconImage=item['rating'],
-        thumbnailImage='es'
+        label2=item['descr'],
+        iconImage=str(item['rating']),
+        thumbnailImage=''
     )
-
     listitem.setProperty("sync", 'true' if item["sync"] else 'false')
     listitem.setProperty("hearing_imp",
                          'true' if item.get("hearing_imp", False) else 'false')
 
-    # Below arguments are optional, it can be used to pass any info needed in
-    # download function anything after "action=download&" will be sent to addon
-    # once user clicks listed subtitle to download
+    # Below arguments are optional, they can be used to pass any info needed in
+    # download function. Anything after "action=download&" will be sent to
+    # addon once user clicks listed subtitle to download
     args = dict(item)
     args['scriptid'] = __scriptid__
     url = INTERNAL_LINK_URL % args
@@ -382,6 +381,23 @@ def Download(id, workdir):
     return subtitles_list
 
 
+def _double_dot_fix_hack(video_filename):
+    parts = video_filename.rsplit('.', 1)
+
+    if len(parts) > 1:
+        rest = parts[0]
+        ext = parts[1]
+        bad_sub = rest + '..' + 'srt'
+        old_sub = rest + '.es.' + 'srt'
+        if xbmcvfs.exists(bad_sub):
+            log(u"_double_dot_fix_hack(): %s exists" % bad_sub)
+            if xbmcvfs.exists(old_sub):
+                log(u"_double_dot_fix_hack(): %s exists, renaming" % old_sub)
+                xbmcvfs.delete(old_sub)
+            log(u"_double_dot_fix_hack(): renaming %s to %s" % (bad_sub, old_sub))
+            xbmcvfs.rename(bad_sub, old_sub)
+
+
 def normalize_string(str):
     return unicodedata.normalize('NFKD', unicode(unicode(str, 'utf-8'))).encode('ascii', 'ignore')
 
@@ -464,6 +480,11 @@ def main():
 
     # Send end of directory to XBMC
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
+
+    if (params['action'] == 'download' and
+            __addon__.getSetting('show_nick_in_place_of_lang') == 'true'):
+        time.sleep(3)
+        _double_dot_fix_hack(params['filename'])
 
 
 if __name__ == '__main__':
