@@ -397,19 +397,20 @@ def main():
     params = get_params(sys.argv)
 
     if params['action'] == 'search':
-        item = {}
-        item['temp']               = False
-        item['rar']                = False
-        item['year']               = xbmc.getInfoLabel("VideoPlayer.Year")
-        item['season']             = str(xbmc.getInfoLabel("VideoPlayer.Season"))
-        item['episode']            = str(xbmc.getInfoLabel("VideoPlayer.Episode"))
-        item['tvshow']             = normalize_string(xbmc.getInfoLabel("VideoPlayer.TVshowtitle"))
-        # Try to get original title
-        item['title']              = normalize_string(xbmc.getInfoLabel("VideoPlayer.OriginalTitle"))
-        # Full path of a playing file
-        item['file_original_path'] = urllib.unquote(xbmc.Player().getPlayingFile().decode('utf-8'))
-        item['3let_language']      = []
-        item['2let_language']      = []
+        item = {
+            'temp': False,
+            'rar': False,
+            'year': xbmc.getInfoLabel("VideoPlayer.Year"),
+            'season': str(xbmc.getInfoLabel("VideoPlayer.Season")),
+            'episode': str(xbmc.getInfoLabel("VideoPlayer.Episode")),
+            'tvshow': normalize_string(xbmc.getInfoLabel("VideoPlayer.TVshowtitle")),
+            # Try to get original title
+            'title': normalize_string(xbmc.getInfoLabel("VideoPlayer.OriginalTitle")),
+            # Full path of a playing file
+            'file_original_path': urllib.unquote(xbmc.Player().getPlayingFile().decode('utf-8')),
+            '3let_language': [],
+            '2let_language': [],
+        }
 
         for lang in urllib.unquote(params['languages']).decode('utf-8').split(","):
             item['3let_language'].append(xbmc.convertLanguage(lang, xbmc.ISO_639_2))
