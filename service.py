@@ -83,9 +83,10 @@ SUBTITLE_RE = re.compile(r'''<a\s+class="titulo_menu_izq2?"\s+
                          .+?<b>Subido\ por:</b>\s*<a.+?>(?P<uploader>.+?)</a>.+?</div></div>''',
                          re.IGNORECASE | re.DOTALL | re.VERBOSE | re.UNICODE |
                          re.MULTILINE)
-# 'id' named group: ID to fetch the subs files
-# 'comment' named group: Translation author comment, may contain filename
-# 'downloads' named group: Downloads, used for ratings
+# Named groups:
+# 'id': ID to fetch the subs files
+# 'comment': Translation author comment, may contain filename
+# 'downloads': Downloads, used for ratings
 
 DOWNLOAD_LINK_RE = re.compile(r'bajar.php\?id=(.*?)&u=(.*?)\"', re.IGNORECASE |
                               re.DOTALL | re.MULTILINE | re.UNICODE)
