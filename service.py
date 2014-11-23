@@ -5,6 +5,7 @@
 # Port to XBMC 13 Gotham subtitles infrastructure: cramm, Mar 2014
 
 from __future__ import print_function
+from json import loads
 import os
 from os.path import join as pjoin
 import os.path
@@ -382,20 +383,49 @@ def Download(id, workdir):
 
 
 def _double_dot_fix_hack(video_filename):
-    parts = video_filename.rsplit('.', 1)
 
+    log(u"_double_dot_fix_hack(): video_filename = %s" % video_filename)
+
+    work_path = video_filename
+    if _subtitles_setting('storagemode'):
+        custom_subs_path = _subtitles_setting('custompath')
+        if custom_subs_path:
+            _, fname = os.path.split(video_filename)
+            work_path = pjoin(custom_subs_path, fname)
+
+    log(u"_double_dot_fix_hack(): work_path = %s" % work_path)
+    parts = work_path.rsplit('.', 1)
     if len(parts) > 1:
         rest = parts[0]
-        ext = parts[1]
-        bad_sub = rest + '..' + 'srt'
-        old_sub = rest + '.es.' + 'srt'
-        if xbmcvfs.exists(bad_sub):
-            log(u"_double_dot_fix_hack(): %s exists" % bad_sub)
-            if xbmcvfs.exists(old_sub):
-                log(u"_double_dot_fix_hack(): %s exists, renaming" % old_sub)
-                xbmcvfs.delete(old_sub)
-            log(u"_double_dot_fix_hack(): renaming %s to %s" % (bad_sub, old_sub))
-            xbmcvfs.rename(bad_sub, old_sub)
+        bad = rest + '..' + 'srt'
+        old = rest + '.es.' + 'srt'
+        if xbmcvfs.exists(bad):
+            log(u"_double_dot_fix_hack(): %s exists" % bad)
+            if xbmcvfs.exists(old):
+                log(u"_double_dot_fix_hack(): %s exists, renaming" % old)
+                xbmcvfs.delete(old)
+            log(u"_double_dot_fix_hack(): renaming %s to %s" % (bad, old))
+            xbmcvfs.rename(bad, old)
+
+
+def _subtitles_setting(name):
+    """
+    Uses XBMC/Kodi JSON-RPC API to retrieve subtitles location settings values.
+    """
+    command = '''{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "Settings.GetSettingValue",
+    "params": {
+        "setting": "subtitles.%s"
+    }
+}'''
+    result = xbmc.executeJSONRPC(command % name)
+    py = loads(result)
+    if 'result' in py and 'value' in py['result']:
+        return py['result']['value']
+    else:
+        raise ValueError
 
 
 def normalize_string(str):
