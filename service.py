@@ -374,13 +374,15 @@ def Download(id, workdir):
     subtitle_detail_url = MAIN_SUBDIVX_URL + str(id)
     html_content = get_url(subtitle_detail_url)
     match = DOWNLOAD_LINK_RE.findall(html_content)
-
-    actual_subtitle_file_url = MAIN_SUBDIVX_URL + "bajar.php?id=" + match[0][0] + "&u=" + match[0][1]
-    content = get_url(actual_subtitle_file_url)
-    if content is not None:
-        saved_fname = _save_subtitles(workdir, content)
-        if saved_fname:
-            subtitles_list.append(saved_fname)
+    if match:
+        actual_subtitle_file_url = MAIN_SUBDIVX_URL + "bajar.php?id=" + match[0][0] + "&u=" + match[0][1]
+        content = get_url(actual_subtitle_file_url)
+        if content is not None:
+            saved_fname = _save_subtitles(workdir, content)
+            if saved_fname:
+                subtitles_list.append(saved_fname)
+    else:
+        log(u"Warning: Expected content not found in selected subtitle detail page")
     return subtitles_list
 
 
