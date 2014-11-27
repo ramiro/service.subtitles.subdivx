@@ -30,6 +30,8 @@ except ImportError:
                   "unit tests.\n")
             sys.exit(1)
 else:
+    from xbmc import (LOGDEBUG, LOGINFO, LOGNOTICE, LOGWARNING, LOGERROR,
+        LOGSEVERE, LOGFATAL, LOGNONE)
     import xbmcaddon
     import xbmcgui
     import xbmcplugin
@@ -57,12 +59,6 @@ SUB_EXTS = ['srt', 'sub', 'txt']
 HTTP_USER_AGENT = "User-Agent=Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.2.3) Gecko/20100401 Firefox/3.6.3 ( .NET CLR 3.5.30729)"
 
 PAGE_ENCODING = 'latin1'
-
-
-def is_subs_file(fn):
-    """Detect if the file has an extension we recognise as subtitle."""
-    ext = fn.split('.')[-1]
-    return ext.upper() in [e.upper() for e in SUB_EXTS]
 
 
 # ============================
@@ -98,9 +94,16 @@ DOWNLOAD_LINK_RE = re.compile(r'bajar.php\?id=(.*?)&u=(.*?)\"', re.IGNORECASE |
 # ==========
 
 
-def log(msg):
-    s = u"SUBDIVX - %s" % msg
-    xbmc.log(s.encode('utf-8'), level=xbmc.LOGDEBUG)
+def is_subs_file(fn):
+    """Detect if the file has an extension we recognise as subtitle."""
+    ext = fn.split('.')[-1]
+    return ext.upper() in [e.upper() for e in SUB_EXTS]
+
+
+def log(msg, level=LOGDEBUG):
+    fname = sys._getframe(1).f_code.co_name
+    s = u"SUBDIVX - %s: %s" % (fname, msg)
+    xbmc.log(s.encode('utf-8'), level=level)
 
 
 def get_url(url):
@@ -108,12 +111,12 @@ def get_url(url):
         # version = HTTP_USER_AGENT
         version = ''
     my_urlopener = MyOpener()
-    log(u"get_url(): Fetching %s" % url)
+    log(u"Fetching %s" % url)
     try:
         response = my_urlopener.open(url)
         content = response.read()
     except Exception:
-        log(u"get_url(): Failed to fetch %s" % url)
+        log(u"Failed to fetch %s" % url, level=LOGWARNING)
         content = None
     return content
 
@@ -160,7 +163,7 @@ def get_all_subs(searchstring, languageshort, languagelong, file_orig_path):
             name, _ = os.path.splitext(fn)
             sync = re.search(re.escape(name), descr, re.I) is not None
             try:
-                log(u"Subtitles found: %s (id = %s)" % (descr, id))
+                log(u'Subtitles found: (id = %s) "%s"' % (id, descr))
             except Exception:
                 pass
             item = {
@@ -178,7 +181,7 @@ def get_all_subs(searchstring, languageshort, languagelong, file_orig_path):
 
     # Put subs with sync=True at the top
     subs_list = sorted(subs_list, key=lambda s: s['sync'], reverse=True)
-    log(u"get_all_subs(): Returning %s" % pformat(subs_list))
+    log(u"Returning %s" % pformat(subs_list))
     return subs_list
 
 
@@ -213,7 +216,7 @@ def append_subtitle(item):
 
 def Search(item):
     """Called when subtitle download is requested from XBMC."""
-    log(u'Search(): item = %s' % pformat(item))
+    log(u'item = %s' % pformat(item))
     # Do what's needed to get the list of subtitles from service site
     # use item["some_property"] that was set earlier.
     # Once done, set xbmcgui.ListItem() below and pass it to
@@ -266,7 +269,7 @@ def _empty_dir(dirname, compressed_file):
             if os.path.isfile(fpath) and fpath != compressed_file:
                 os.unlink(fpath)
         except Exception as e:
-            log(u"Error removing file %s: %s" % (fname, e))
+            log(u"Error removing file %s: %s" % (fname, e), level=LOGERROR)
 
 
 def _handle_compressed_subs(workdir, compressed_file, type):
@@ -317,12 +320,12 @@ def _handle_compressed_subs(workdir, compressed_file, type):
             log(u"Choosing first new file detected: %s" % fpath)
             retval = True
         else:
-            log(u"No new file(s) detected")
+            log(u"No new file(s) detected", level=LOGERROR)
 
     if retval:
         log(u"Unpacked subtitles file '%s'" % fpath)
     else:
-        log(u"Failed to unpack subtitles")
+        log(u"Failed to unpack subtitles", level=LOGSEVERE)
     return retval, fpath
 
 
@@ -346,7 +349,7 @@ def _save_subtitles(workdir, content):
         with open(tmp_fname, "wb") as fh:
             fh.write(content)
     except Exception:
-        log(u"Failed to save subtitles to '%s'" % tmp_fname)
+        log(u"Failed to save subtitles to '%s'" % tmp_fname, level=LOGSEVERE)
         return None
     else:
         if is_compressed:
@@ -382,13 +385,13 @@ def Download(id, workdir):
             if saved_fname:
                 subtitles_list.append(saved_fname)
     else:
-        log(u"Warning: Expected content not found in selected subtitle detail page")
+        log(u"Expected content not found in selected subtitle detail page", level=LOGFATAL)
     return subtitles_list
 
 
 def _double_dot_fix_hack(video_filename):
 
-    log(u"_double_dot_fix_hack(): video_filename = %s" % video_filename)
+    log(u"video_filename = %s" % video_filename)
 
     work_path = video_filename
     if _subtitles_setting('storagemode'):
@@ -397,18 +400,18 @@ def _double_dot_fix_hack(video_filename):
             _, fname = os.path.split(video_filename)
             work_path = pjoin(custom_subs_path, fname)
 
-    log(u"_double_dot_fix_hack(): work_path = %s" % work_path)
+    log(u"work_path = %s" % work_path)
     parts = work_path.rsplit('.', 1)
     if len(parts) > 1:
         rest = parts[0]
         bad = rest + '..' + 'srt'
         old = rest + '.es.' + 'srt'
         if xbmcvfs.exists(bad):
-            log(u"_double_dot_fix_hack(): %s exists" % bad)
+            log(u"%s exists" % bad)
             if xbmcvfs.exists(old):
-                log(u"_double_dot_fix_hack(): %s exists, renaming" % old)
+                log(u"%s exists, renaming" % old)
                 xbmcvfs.delete(old)
-            log(u"_double_dot_fix_hack(): renaming %s to %s" % (bad, old))
+            log(u"renaming %s to %s" % (bad, old))
             xbmcvfs.rename(bad, old)
 
 
@@ -450,7 +453,7 @@ def get_params(argv):
 
 def main():
     """Main entry point of the script when it is invoked by XBMC."""
-    log(u"Version: %s" % __version__)
+    log(u"Version: %s" % __version__, level=LOGINFO)
 
     # Get parameters from XBMC and launch actions
     params = get_params(sys.argv)
