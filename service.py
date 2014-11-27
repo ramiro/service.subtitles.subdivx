@@ -357,14 +357,17 @@ def _save_subtitles(workdir, content):
             return tmp_fname
 
 
-def Download(id, workdir):
-    """Called when subtitle download is requested from XBMC."""
+def ensure_workdir(workdir):
     # Cleanup temp dir, we recommend you download/unzip your subs in temp
     # folder and pass that to XBMC to copy and activate
     if xbmcvfs.exists(workdir):
         shutil.rmtree(workdir)
-        xbmcvfs.mkdirs(workdir)
+    xbmcvfs.mkdirs(workdir)
+    return xbmcvfs.exists(workdir)
 
+
+def Download(id, workdir):
+    """Called when subtitle download is requested from XBMC."""
     subtitles_list = []
     # Get the page with the subtitle link,
     # i.e. http://www.subdivx.com/X6XMjE2NDM1X-iron-man-2-2010
@@ -497,6 +500,8 @@ def main():
         # Make sure it ends with a path separator (Kodi 14)
         workdir = workdir + os.path.sep
         workdir = xbmc.translatePath(workdir).decode("utf-8")
+
+        ensure_workdir(workdir)
 
         # We pickup our arguments sent from the Search() function
         subs = Download(params["id"], workdir)
