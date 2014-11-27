@@ -52,7 +52,7 @@ sys.path.append(__resource__)
 MAIN_SUBDIVX_URL = "http://www.subdivx.com/"
 SEARCH_PAGE_URL = MAIN_SUBDIVX_URL + "index.php?accion=5&masdesc=&oxdown=1&pg=%(page)s&buscar=%(query)s"
 
-INTERNAL_LINK_URL = "plugin://%(scriptid)s/?action=download&id=%(id)s&filename=%(filename)s"
+INTERNAL_LINK_URL_BASE = "plugin://%s/?"
 SUB_EXTS = ['srt', 'sub', 'txt']
 HTTP_USER_AGENT = "User-Agent=Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.2.3) Gecko/20100401 Firefox/3.6.3 ( .NET CLR 3.5.30729)"
 
@@ -200,9 +200,8 @@ def append_subtitle(item):
     # Below arguments are optional, they can be used to pass any info needed in
     # download function. Anything after "action=download&" will be sent to
     # addon once user clicks listed subtitle to download
-    args = dict(item)
-    args['scriptid'] = __scriptid__
-    url = INTERNAL_LINK_URL % args
+    url = INTERNAL_LINK_URL_BASE % __scriptid__
+    url = url + urllib.urlencode((('id', item['id']), ('filename', item['filename'])))
 
     # Add it to list, this can be done as many times as needed for all
     # subtitles found
