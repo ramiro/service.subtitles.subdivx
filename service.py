@@ -185,7 +185,7 @@ def get_all_subs(searchstring, languageshort, languagelong, file_orig_path):
     return subs_list
 
 
-def append_subtitle(item):
+def append_subtitle(fliename, item):
     if __addon__.getSetting('show_nick_in_place_of_lang') == 'true':
         item_label = item['uploader']
     else:
@@ -204,7 +204,7 @@ def append_subtitle(item):
     # download function. Anything after "action=download&" will be sent to
     # addon once user clicks listed subtitle to download
     url = INTERNAL_LINK_URL_BASE % __scriptid__
-    url = url + urllib.urlencode((('id', item['id']), ('filename', item['filename'])))
+    url = url + urllib.urlencode((('id', item['id']), ('filename', filename)))
 
     # Add it to list, this can be done as many times as needed for all
     # subtitles found
@@ -236,7 +236,7 @@ def Search(item):
     subs_list = get_all_subs(searchstring, "es", "Spanish", file_original_path)
 
     for sub in subs_list:
-        append_subtitle(sub)
+        append_subtitle(file_original_path, sub)
 
 
 def _wait_for_extract(workdir, base_filecount, base_mtime, limit):
