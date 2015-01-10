@@ -262,53 +262,38 @@ def _wait_for_extract(workdir, base_filecount, base_mtime, limit):
     return waittime != limit
 
 
-def _handle_compressed_subs(workdir, compressed_file, type):
+def _handle_compressed_subs(workdir, compressed_file):
     MAX_UNZIP_WAIT = 15
     files = os.listdir(workdir)
     filecount = len(files)
     max_mtime = 0
-    subs_before = []
     # Determine the newest file
     for fname in files:
         if not is_subs_file(fname):
             continue
-        subs_before.append(fname)
         mtime = os.stat(pjoin(workdir, fname)).st_mtime
         if mtime > max_mtime:
             max_mtime = mtime
-    subs_before = set(subs_before)
     base_mtime = max_mtime
     # Wait 2 seconds so that the unpacked files are at least 1 second newer
     time.sleep(2)
     xbmc.executebuiltin("XBMC.Extract(%s, %s)" % (
                         compressed_file.encode("utf-8"),
                         workdir.encode("utf-8")))
-    retval, fpath = False, None
-    x = _wait_for_extract(workdir, filecount, base_mtime, MAX_UNZIP_WAIT)
-    files = os.listdir(workdir)
-    subs_after = []
-    for fname in files:
-        # There could be more subtitle files in __temp__, so make
-        # sure we get the newly created subtitle file
-        if not is_subs_file(fname):
-            continue
-        fpath = pjoin(workdir, fname.decode("utf-8"))
-        subs_after.append(fname)
-        if os.stat(fpath).st_mtime > base_mtime and x:
-            # unpacked file is a newly created subtitle file
-            retval = True
-    subs_after = set(subs_after)
-    # rar unpacking can extract files preserving their mtime so the above
-    # detection fails, fallback to detect dir contents changes
-    if type == '.rar' and not retval:
-        log(u"Falling back to RAR file strategy")
-        new_files = subs_after - subs_before
-        if new_files:
-            fpath = pjoin(workdir, new_files.pop().decode("utf-8"))
-            log(u"Choosing first new file detected: %s" % fpath)
-            retval = True
-        else:
-            log(u"No new file(s) detected", level=LOGERROR)
+
+    retval = False
+    if _wait_for_extract(workdir, filecount, base_mtime, MAX_UNZIP_WAIT):
+        files = os.listdir(workdir)
+        for fname in files:
+            # There could be more subtitle files, so make
+            # sure we get the newly created subtitle file
+            if not is_subs_file(fname):
+                continue
+            fpath = pjoin(workdir, fname.decode("utf-8"))
+            if os.stat(fpath).st_mtime > base_mtime:
+                # unpacked file is a newly created subtitle file
+                retval = True
+                break
 
     if retval:
         log(u"Unpacked subtitles file '%s'" % fpath)
@@ -341,7 +326,7 @@ def _save_subtitles(workdir, content):
         return None
     else:
         if is_compressed:
-            rval, fname = _handle_compressed_subs(workdir, tmp_fname, type)
+            rval, fname = _handle_compressed_subs(workdir, tmp_fname)
             if rval:
                 return fname
         else:
