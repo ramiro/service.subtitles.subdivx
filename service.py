@@ -262,20 +262,8 @@ def _wait_for_extract(workdir, base_filecount, base_mtime, limit):
     return waittime != limit
 
 
-def _empty_dir(dirname, compressed_file):
-    for fname in os.listdir(dirname):
-        fpath = pjoin(dirname, fname)
-        try:
-            if os.path.isfile(fpath) and fpath != compressed_file:
-                os.unlink(fpath)
-        except Exception as e:
-            log(u"Error removing file %s: %s" % (fname, e), level=LOGERROR)
-
-
 def _handle_compressed_subs(workdir, compressed_file, type):
     MAX_UNZIP_WAIT = 15
-    if type == '.rar':
-        _empty_dir(workdir, compressed_file)
     files = os.listdir(workdir)
     filecount = len(files)
     max_mtime = 0
