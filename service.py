@@ -31,7 +31,7 @@ except ImportError:
             sys.exit(1)
 else:
     from xbmc import (LOGDEBUG, LOGINFO, LOGNOTICE, LOGWARNING, LOGERROR,
-        LOGSEVERE, LOGFATAL, LOGNONE)
+                      LOGSEVERE, LOGFATAL, LOGNONE)
     import xbmcaddon
     import xbmcgui
     import xbmcplugin
@@ -52,7 +52,8 @@ sys.path.append(__resource__)
 
 
 MAIN_SUBDIVX_URL = "http://www.subdivx.com/"
-SEARCH_PAGE_URL = MAIN_SUBDIVX_URL + "index.php?accion=5&masdesc=&oxdown=1&pg=%(page)s&buscar=%(query)s"
+SEARCH_PAGE_URL = MAIN_SUBDIVX_URL + \
+    "index.php?accion=5&masdesc=&oxdown=1&pg=%(page)s&buscar=%(query)s"
 
 INTERNAL_LINK_URL_BASE = "plugin://%s/?"
 SUB_EXTS = ['srt', 'sub', 'txt']
@@ -331,6 +332,7 @@ def _save_subtitles(workdir, content):
                 return fname
         else:
             return tmp_fname
+    return None
 
 
 def ensure_workdir(workdir):
