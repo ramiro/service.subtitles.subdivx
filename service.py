@@ -245,7 +245,9 @@ def Search(item):
     season = item['season']
     episode = item['episode']
 
-    if tvshow:
+    if item['manual_search']:
+        searchstring = unquote(item['manual_search_string'])
+    elif tvshow:
         searchstring = "%s S%#02dE%#02d" % (tvshow, int(season), int(episode))
     else:
         searchstring = title
@@ -453,7 +455,7 @@ def main():
     # Get parameters from XBMC and launch actions
     params = get_params(sys.argv)
 
-    if params['action'] == 'search':
+    if params['action'] in ('search', 'manualsearch'):
         item = {
             'temp': False,
             'rar': False,
@@ -467,7 +469,11 @@ def main():
             'file_original_path': unquote(xbmc.Player().getPlayingFile().decode('utf-8')),
             '3let_language': [],
             '2let_language': [],
+            'manual_search': 'searchstring' in params,
         }
+
+        if 'searchstring' in params:
+            item['manual_search_string'] = params['searchstring']
 
         for lang in unquote(params['languages']).decode('utf-8').split(","):
             item['3let_language'].append(xbmc.convertLanguage(lang, xbmc.ISO_639_2))
