@@ -206,14 +206,30 @@ def append_subtitle(item, filename):
     # download function. Anything after "action=download&" will be sent to
     # addon once user clicks listed subtitle to download
     url = INTERNAL_LINK_URL_BASE % __scriptid__
-    url = url + urlencode((('id', item['subdivx_id']), ('filename', filename)))
-
+    xbmc_url = build_xbmc_item_url(url, item, filename)
     # Add it to list, this can be done as many times as needed for all
     # subtitles found
     xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),
-                                url=url,
+                                url=xbmc_url,
                                 listitem=listitem,
                                 isFolder=False)
+
+
+def build_xbmc_item_url(url, item, filename):
+    """Return an internal Kodi pseudo-url for the provided sub search result"""
+    try:
+        xbmc_url = url + urlencode((('id', item['subdivx_id']),
+                                    ('filename', filename)))
+    except UnicodeEncodeError:
+        # Well, go back to trying it with its original latin1 encoding
+        try:
+            subdivx_id = item['subdivx_id'].encode(PAGE_ENCODING)
+            xbmc_url = url + urlencode((('id', subdivx_id),
+                                        ('filename', filename)))
+        except Exception:
+            log('Problematic subdivx_id: %s' % subdivx_id)
+            raise
+    return xbmc_url
 
 
 def Search(item):
