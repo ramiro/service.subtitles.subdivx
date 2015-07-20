@@ -302,12 +302,17 @@ def _handle_compressed_subs(workdir, compressed_file):
                         workdir.encode("utf-8")))
 
     retval = False
+    fpath = None
     if _wait_for_extract(workdir, filecount, base_mtime, MAX_UNZIP_WAIT):
         files = os.listdir(workdir)
         for fname in files:
             # There could be more subtitle files, so make
             # sure we get the newly created subtitle file
             if not is_subs_file(fname):
+                if re.match(r'.*\.rar', fname, re.I):
+                    retval, fpath = _handle_compressed_subs(workdir, pjoin(workdir, fname))
+                    if retval:
+                        break
                 continue
             fpath = pjoin(workdir, fname.decode("utf-8"))
             if os.stat(fpath).st_mtime > base_mtime:
