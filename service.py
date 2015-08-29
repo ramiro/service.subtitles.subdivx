@@ -44,8 +44,8 @@ __scriptname__ = __addon__.getAddonInfo('name')
 __version__    = __addon__.getAddonInfo('version')
 __language__   = __addon__.getLocalizedString
 
-__cwd__        = xbmc.translatePath(__addon__.getAddonInfo('path')).decode("utf-8")
-__profile__    = xbmc.translatePath(__addon__.getAddonInfo('profile')).decode("utf-8")
+__cwd__        = xbmc.translatePath(__addon__.getAddonInfo('path').decode("utf-8"))
+__profile__    = xbmc.translatePath(__addon__.getAddonInfo('profile').decode("utf-8"))
 
 
 MAIN_SUBDIVX_URL = "http://www.subdivx.com/"
@@ -85,6 +85,9 @@ SUBTITLE_RE = re.compile(r'''<a\s+class="titulo_menu_izq2?"\s+
 # 'downloads': Downloads, used for ratings
 
 DOWNLOAD_LINK_RE = re.compile(r'bajar.php\?id=(.*?)&u=(.*?)\"', re.IGNORECASE |
+                              re.DOTALL | re.MULTILINE | re.UNICODE)
+
+PRE_DOWNLOAD_LINK_RE = re.compile(r'<a rel="nofollow" class="detalle_link" href="http://www.subdivx.com/(?P<id_sub>.*?)"><b>Bajar</b></a>', re.IGNORECASE |
                               re.DOTALL | re.MULTILINE | re.UNICODE)
 
 # ==========
@@ -274,7 +277,7 @@ def _wait_for_extract(workdir, base_filecount, base_mtime, limit):
         for fname in files:
             if not is_subs_file(fname):
                 continue
-            fname = fname.decode('utf-8')
+            fname = fname
             mtime = os.stat(pjoin(workdir, fname)).st_mtime
             if mtime > newest_mtime:
                 newest_mtime = mtime
@@ -309,14 +312,14 @@ def _handle_compressed_subs(workdir, compressed_file):
             # sure we get the newly created subtitle file
             if not is_subs_file(fname):
                 continue
-            fpath = pjoin(workdir, fname.decode("utf-8"))
+            fpath = pjoin(workdir, fname)
             if os.stat(fpath).st_mtime > base_mtime:
                 # unpacked file is a newly created subtitle file
                 retval = True
                 break
 
     if retval:
-        log(u"Unpacked subtitles file '%s'" % fpath)
+        log(u"Unpacked subtitles file '%s'" % normalize_string(fpath))
     else:
         log(u"Failed to unpack subtitles", level=LOGSEVERE)
     return retval, fpath
@@ -337,12 +340,12 @@ def _save_subtitles(workdir, content):
         type = '.srt'
         is_compressed = False
     tmp_fname = pjoin(workdir, "subdivx" + type)
-    log(u"Saving subtitles to '%s'" % tmp_fname)
+    log(u"Saving subtitles to '%s'" % normalize_string(tmp_fname))
     try:
         with open(tmp_fname, "wb") as fh:
             fh.write(content)
     except Exception:
-        log(u"Failed to save subtitles to '%s'" % tmp_fname, level=LOGSEVERE)
+        log(u"Failed to save subtitles to '%s'" % normalize_string(tmp_fname), level=LOGSEVERE)
         return None
     else:
         if is_compressed:
@@ -353,12 +356,31 @@ def _save_subtitles(workdir, content):
             return tmp_fname
     return None
 
+def rmgeneric(path, __func__):
+    try:
+        __func__(path)
+        log(u"Removed %s" % normalize_string(path))
+    except OSError, (errno, strerror):
+        log(u"Error removing %(path)s, %(error)s" % {'path' : normalize_string(path), 'error': strerror }, level=LOGFATAL)
+
+def removeAll(dir):
+    if not os.path.isdir(dir):
+      return
+    files = os.listdir(dir)
+    for file in files:
+      if os.path.isdir(pjoin(dir, file)):
+        removeAll(file)
+      else:
+        f=os.remove
+        rmgeneric(pjoin(dir, file), f)
+    f=os.rmdir
+    rmgeneric(dir, f)
 
 def ensure_workdir(workdir):
     # Cleanup temp dir, we recommend you download/unzip your subs in temp
     # folder and pass that to XBMC to copy and activate
     if xbmcvfs.exists(workdir):
-        shutil.rmtree(workdir)
+        removeAll(workdir)
     xbmcvfs.mkdirs(workdir)
     return xbmcvfs.exists(workdir)
 
@@ -370,18 +392,33 @@ def Download(subdivx_id, workdir):
     # i.e. http://www.subdivx.com/X6XMjE2NDM1X-iron-man-2-2010
     subtitle_detail_url = MAIN_SUBDIVX_URL + subdivx_id
     html_content = get_url(subtitle_detail_url)
-    match = DOWNLOAD_LINK_RE.findall(html_content)
-    if match:
-        actual_subtitle_file_url = (MAIN_SUBDIVX_URL + "bajar.php?id=" +
-                                    match[0][0] + "&u=" + match[0][1])
-        content = get_url(actual_subtitle_file_url)
-        if content is not None:
-            saved_fname = _save_subtitles(workdir, content)
-            if saved_fname:
-                subtitles_list.append(saved_fname)
-    else:
+    if html_content is None or not PRE_DOWNLOAD_LINK_RE.search(html_content):
         log(u"Expected content not found in selected subtitle detail page",
-            level=LOGFATAL)
+                level=LOGFATAL)
+        return subtitles_list
+    else:
+        for match in PRE_DOWNLOAD_LINK_RE.finditer(html_content):
+            groups = match.groupdict()
+            id_sub = groups['id_sub']
+            html_content_down = get_url(MAIN_SUBDIVX_URL + id_sub)
+            match_down = DOWNLOAD_LINK_RE.findall(html_content_down)
+            if match_down:
+                actual_subtitle_file_url = (MAIN_SUBDIVX_URL + "bajar.php?id=" +
+                                         match_down[0][0] + "&u=" + match_down[0][1])
+                content = get_url(actual_subtitle_file_url)
+                if content is not None:
+                    saved_fname = _save_subtitles(workdir, content)
+                    if saved_fname:
+                        subtitles_list.append(saved_fname)
+                        break
+                else:
+                    log(u"Expected content not found in selected subtitle detail page",
+                    level=LOGFATAL)
+                    break
+            else:
+                log(u"Expected content not found in selected subtitle detail page",
+                level=LOGFATAL)
+                break
     return subtitles_list
 
 
@@ -505,7 +542,7 @@ def main():
         workdir = pjoin(__profile__, 'temp')
         # Make sure it ends with a path separator (Kodi 14)
         workdir = workdir + os.path.sep
-        workdir = xbmc.translatePath(workdir).decode("utf-8")
+        workdir = xbmc.translatePath(workdir)
 
         ensure_workdir(workdir)
 
