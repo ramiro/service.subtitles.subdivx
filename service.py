@@ -13,6 +13,7 @@ from pprint import pformat
 import re
 import shutil
 import sys
+import tempfile
 import time
 from unicodedata import normalize
 from urllib import FancyURLopener, unquote, quote_plus, urlencode
@@ -354,15 +355,6 @@ def _save_subtitles(workdir, content):
     return None
 
 
-def ensure_workdir(workdir):
-    # Cleanup temp dir, we recommend you download/unzip your subs in temp
-    # folder and pass that to XBMC to copy and activate
-    if xbmcvfs.exists(workdir):
-        shutil.rmtree(workdir)
-    xbmcvfs.mkdirs(workdir)
-    return xbmcvfs.exists(workdir)
-
-
 def Download(subdivx_id, workdir):
     """Called when subtitle download is requested from XBMC."""
     subtitles_list = []
@@ -510,12 +502,9 @@ def main():
         debug_dump_path(xbmc.translatePath(__addon__.getAddonInfo('profile')),
                         "xbmc.translatePath(__addon__.getAddonInfo('profile'))")
         debug_dump_path(__profile__, '__profile__')
-        workdir = pjoin(__profile__, 'temp')
+        workdir = tempfile.mkdtemp(dir=__profile__)
         # Make sure it ends with a path separator (Kodi 14)
         workdir = workdir + os.path.sep
-
-        ensure_workdir(workdir)
-
         # We pickup our arguments sent from the Search() function
         subs = Download(params["id"], workdir)
         # We can return more than one subtitle for multi CD versions, for now
