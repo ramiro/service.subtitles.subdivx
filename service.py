@@ -357,24 +357,30 @@ def _save_subtitles(workdir, content):
 
 def Download(subdivx_id, workdir):
     """Called when subtitle download is requested from XBMC."""
-    subtitles_list = []
     # Get the page with the subtitle link,
     # i.e. http://www.subdivx.com/X6XMjE2NDM1X-iron-man-2-2010
     subtitle_detail_url = MAIN_SUBDIVX_URL + subdivx_id
     html_content = get_url(subtitle_detail_url)
+    if html_content is None:
+        log(u"No content found in selected subtitle detail page",
+            level=LOGFATAL)
+        return []
     match = DOWNLOAD_LINK_RE.findall(html_content)
-    if match:
-        actual_subtitle_file_url = (MAIN_SUBDIVX_URL + "bajar.php?id=" +
-                                    match[0][0] + "&u=" + match[0][1])
-        content = get_url(actual_subtitle_file_url)
-        if content is not None:
-            saved_fname = _save_subtitles(workdir, content)
-            if saved_fname:
-                subtitles_list.append(saved_fname)
-    else:
+    if not match:
         log(u"Expected content not found in selected subtitle detail page",
             level=LOGFATAL)
-    return subtitles_list
+        return []
+    actual_subtitle_file_url = (MAIN_SUBDIVX_URL + "bajar.php?id=" +
+                                match[0][0] + "&u=" + match[0][1])
+    content = get_url(actual_subtitle_file_url)
+    if content is None:
+        log(u"Got no content when downloading actual subtitle file",
+            level=LOGFATAL)
+        return []
+    saved_fname = _save_subtitles(workdir, content)
+    if saved_fname is None:
+        return []
+    return [saved_fname]
 
 
 def _double_dot_fix_hack(video_filename):
