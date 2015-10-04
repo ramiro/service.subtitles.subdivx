@@ -85,7 +85,7 @@ SUBTITLE_RE = re.compile(r'''<a\s+class="titulo_menu_izq2?"\s+
 # 'comment': Translation author comment, may contain filename
 # 'downloads': Downloads, used for ratings
 
-DOWNLOAD_LINK_RE = re.compile(r'bajar.php\?id=(.*?)&u=(.*?)\"', re.IGNORECASE |
+DOWNLOAD_LINK_RE = re.compile(r'bajar.php\?id=(?P<id>.*?)&u=(?P<u>.*?)\"', re.IGNORECASE |
                               re.DOTALL | re.MULTILINE | re.UNICODE)
 
 # ==========
@@ -365,13 +365,13 @@ def Download(subdivx_id, workdir):
         log(u"No content found in selected subtitle detail page",
             level=LOGFATAL)
         return []
-    match = DOWNLOAD_LINK_RE.findall(html_content)
-    if not match:
+    match = DOWNLOAD_LINK_RE.search(html_content)
+    if match is None:
         log(u"Expected content not found in selected subtitle detail page",
             level=LOGFATAL)
         return []
-    actual_subtitle_file_url = (MAIN_SUBDIVX_URL + "bajar.php?id=" +
-                                match[0][0] + "&u=" + match[0][1])
+    id_, u = match.group('id', 'u')
+    actual_subtitle_file_url = MAIN_SUBDIVX_URL + "bajar.php?id=" + id_ + "&u=" + u
     content = get_url(actual_subtitle_file_url)
     if content is None:
         log(u"Got no content when downloading actual subtitle file",
