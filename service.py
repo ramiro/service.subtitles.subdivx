@@ -448,6 +448,11 @@ def get_params(argv):
     return params
 
 
+def debug_dump_path(victim, name):
+    t = type(victim)
+    log("%s (%s): %s" % (name, t, victim))
+
+
 def main():
     """Main entry point of the script when it is invoked by XBMC."""
     log(u"Version: %s" % __version__, level=LOGINFO)
@@ -502,10 +507,12 @@ def main():
         Search(item)
 
     elif params['action'] == 'download':
+        debug_dump_path(xbmc.translatePath(__addon__.getAddonInfo('profile')),
+                        "xbmc.translatePath(__addon__.getAddonInfo('profile'))")
+        debug_dump_path(__profile__, '__profile__')
         workdir = pjoin(__profile__, 'temp')
         # Make sure it ends with a path separator (Kodi 14)
         workdir = workdir + os.path.sep
-        workdir = xbmc.translatePath(workdir).decode("utf-8")
 
         ensure_workdir(workdir)
 
