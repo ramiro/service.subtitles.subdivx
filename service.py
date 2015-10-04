@@ -447,12 +447,12 @@ def debug_dump_path(victim, name):
 
 def main():
     """Main entry point of the script when it is invoked by XBMC."""
-    log(u"Version: %s" % __version__, level=LOGINFO)
-
     # Get parameters from XBMC and launch actions
     params = get_params(sys.argv)
+    action = params.get('action', 'Unknown')
+    xbmc.log(u"SUBDIVX - Version: %s -- Action: %s" % (__version__, action), level=LOGINFO)
 
-    if params['action'] in ('search', 'manualsearch'):
+    if action in ('search', 'manualsearch'):
         item = {
             'temp': False,
             'rar': False,
@@ -498,7 +498,7 @@ def main():
 
         Search(item)
 
-    elif params['action'] == 'download':
+    elif action == 'download':
         debug_dump_path(xbmc.translatePath(__addon__.getAddonInfo('profile')),
                         "xbmc.translatePath(__addon__.getAddonInfo('profile'))")
         debug_dump_path(__profile__, '__profile__')
@@ -517,7 +517,7 @@ def main():
     # Send end of directory to XBMC
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
-    if (params['action'] == 'download' and
+    if (action == 'download' and
             __addon__.getSetting('show_nick_in_place_of_lang') == 'true'):
         time.sleep(3)
         _double_dot_fix_hack(params['filename'])
