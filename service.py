@@ -123,13 +123,6 @@ def get_url(url):
     return content
 
 
-def _downloads2rating(downloads):
-    rating = downloads / 1000
-    if rating > 10:
-        rating = 10
-    return rating
-
-
 def get_all_subs(searchstring, languageshort, file_orig_path):
     if languageshort != "es":
         return []
@@ -179,7 +172,6 @@ def get_all_subs(searchstring, languageshort, file_orig_path):
                 'subdivx_id': subdivx_id.decode(PAGE_ENCODING),
                 'uploader': groups['uploader'],
                 'downloads': downloads,
-                'rating': _downloads2rating(downloads),
                 'score': int(groups['calif']),
             }
             subs_list.append(item)
@@ -187,8 +179,32 @@ def get_all_subs(searchstring, languageshort, file_orig_path):
 
     # Put subs with sync=True at the top
     subs_list = sorted(subs_list, key=lambda s: s['sync'], reverse=True)
-    log(u"Returning %s" % pformat(subs_list))
     return subs_list
+
+
+def compute_ratings(subs_list):
+    """
+    Calculate the rating figures (from zero to five) in a relative fashion
+    based on number of downloads.
+
+    This is later converted by XBMC/Kodi in a zero to five stars GUI.
+
+    Ideally, we should be able to use a smarter number instead of just the
+    download count of every subtitle but it seems in Subdivx the 'score' value
+    has no reliable value and there isn't a user ranking system in place
+    we could use to deduce the quality of a contribution.
+    """
+    max_dl_count = 0
+    for sub in subs_list:
+        dl_cnt = sub.get('downloads', 0)
+        if dl_cnt > max_dl_count:
+            max_dl_count = dl_cnt
+    for sub in subs_list:
+        if max_dl_count:
+            sub['rating'] = int((sub['downloads'] / float(max_dl_count)) * 5)
+        else:
+            sub['rating'] = 0
+    log(u"subs_list = %s" % pformat(subs_list))
 
 
 def append_subtitle(item, filename):
@@ -258,6 +274,8 @@ def Search(item):
     log(u"Search string = %s" % searchstring)
 
     subs_list = get_all_subs(searchstring, "es", file_original_path)
+
+    compute_ratings(subs_list)
 
     for sub in subs_list:
         append_subtitle(sub, file_original_path)
