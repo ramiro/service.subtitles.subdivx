@@ -1,3 +1,9 @@
+0.0.9
+- More robust final download link RE-based extraction.
+- Handle .srt filenames with unicode chars more robustly.
+- Make rating actually helpful by reflecting relative download count.
+- Cleanup uploader comment for the subtitle.
+
 0.0.8
 - Handle new page added by subdivx.com. Thanks github users @upadrian,
   @gboado and @felexx90
