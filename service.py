@@ -16,7 +16,7 @@ import sys
 import tempfile
 import time
 from unicodedata import normalize
-from urllib import FancyURLopener, unquote, quote_plus, urlencode
+from urllib import FancyURLopener, unquote, quote_plus, urlencode, quote
 from urlparse import parse_qs
 
 try:
@@ -88,7 +88,7 @@ SUBTITLE_RE = re.compile(r'''<a\s+class="titulo_menu_izq2?"\s+
 DETAIL_PAGE_LINK_RE = re.compile(r'<a rel="nofollow" class="detalle_link" href="http://www.subdivx.com/(?P<id>.*?)"><b>Bajar</b></a>',
                                  re.IGNORECASE | re.DOTALL | re.MULTILINE | re.UNICODE)
 
-DOWNLOAD_LINK_RE = re.compile(r'bajar.php\?id=(?P<id>.*?)&u=(?P<u>.*?)\"', re.IGNORECASE |
+DOWNLOAD_LINK_RE = re.compile(r'bajar.php\?id=(?P<id>.*?)&u=(?P<u>[^"\']+?)', re.IGNORECASE |
                               re.DOTALL | re.MULTILINE | re.UNICODE)
 
 # ==========
@@ -380,7 +380,7 @@ def Download(subdivx_id, workdir):
     """Called when subtitle download is requested from XBMC."""
     # Get the page with the subtitle link,
     # i.e. http://www.subdivx.com/X6XMjE2NDM1X-iron-man-2-2010
-    subtitle_detail_url = MAIN_SUBDIVX_URL + subdivx_id
+    subtitle_detail_url = MAIN_SUBDIVX_URL + quote(subdivx_id)
     # Fetch and scrape new intermediate page
     html_content = get_url(subtitle_detail_url)
     if html_content is None:
