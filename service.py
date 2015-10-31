@@ -151,7 +151,6 @@ def get_all_subs(searchstring, languageshort, file_orig_path):
             downloads = int(dls)
 
             descr = groups['comment']
-            descr = descr.strip()
             # Remove new lines
             descr = re.sub('\n', ' ', descr)
             # Remove Google Ads
@@ -160,6 +159,7 @@ def get_all_subs(searchstring, languageshort, file_orig_path):
                            re.UNICODE)
             # Remove HTML tags
             descr = re.sub(r'<[^<]+?>', '', descr)
+            descr = descr.rstrip(' \t')
 
             # If our actual video file's name appears in the description
             # then set sync to True because it has better chances of its
