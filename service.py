@@ -296,7 +296,8 @@ def _wait_for_extract(workdir, base_filecount, base_mtime, limit):
         for fname in files:
             if not is_subs_file(fname):
                 continue
-            fname = fname.decode('utf-8')
+            if type(fname) != unicode:
+                fname = fname.decode('utf-8')
             mtime = os.stat(pjoin(workdir, fname)).st_mtime
             if mtime > newest_mtime:
                 newest_mtime = mtime
@@ -331,7 +332,9 @@ def _handle_compressed_subs(workdir, compressed_file):
             # sure we get the newly created subtitle file
             if not is_subs_file(fname):
                 continue
-            fpath = pjoin(workdir, fname.decode("utf-8"))
+            if type(fname) != unicode:
+                fname = fname.decode('utf-8')
+            fpath = pjoin(workdir, fname)
             if os.stat(fpath).st_mtime > base_mtime:
                 # unpacked file is a newly created subtitle file
                 retval = True
