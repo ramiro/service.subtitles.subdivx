@@ -1,4 +1,6 @@
 0.0.9
+- Make sure the userdata/addon_data/s.s.s/ dir exists when handling tempdirs
+  even when the user hasn't touched our setting
 - More robust final download link RE-based extraction.
 - Handle .srt filenames with unicode chars more robustly.
 - Make rating actually helpful by reflecting relative download count.
