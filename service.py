@@ -484,7 +484,7 @@ def get_params(argv):
 
 def debug_dump_path(victim, name):
     t = type(victim)
-    log("%s (%s): %s" % (name, t, victim))
+    xbmc.log("%s (%s): %s" % (name, t, victim), level=LOGDEBUG)
 
 
 def main():
@@ -544,6 +544,7 @@ def main():
         debug_dump_path(xbmc.translatePath(__addon__.getAddonInfo('profile')),
                         "xbmc.translatePath(__addon__.getAddonInfo('profile'))")
         debug_dump_path(__profile__, '__profile__')
+        xbmcvfs.mkdirs(__profile__)
         workdir = tempfile.mkdtemp(dir=__profile__)
         # Make sure it ends with a path separator (Kodi 14)
         workdir = workdir + os.path.sep
