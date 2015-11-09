@@ -548,6 +548,7 @@ def main():
         workdir = tempfile.mkdtemp(dir=__profile__)
         # Make sure it ends with a path separator (Kodi 14)
         workdir = workdir + os.path.sep
+        debug_dump_path(workdir, 'workdir')
         # We pickup our arguments sent from the Search() function
         subs = Download(params["id"], workdir)
         # We can return more than one subtitle for multi CD versions, for now
