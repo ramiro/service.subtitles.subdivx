@@ -492,7 +492,7 @@ def main():
     # Get parameters from XBMC and launch actions
     params = get_params(sys.argv)
     action = params.get('action', 'Unknown')
-    xbmc.log(u"SUBDIVX - Version: %s -- Action: %s" % (__version__, action), level=LOGINFO)
+    xbmc.log(u"SUBDIVX - Version: %s -- Action: %s" % (__version__, action), level=LOGNOTICE)
 
     if action in ('search', 'manualsearch'):
         item = {
