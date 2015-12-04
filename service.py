@@ -484,7 +484,7 @@ def get_params(argv):
 
 def debug_dump_path(victim, name):
     t = type(victim)
-    xbmc.log("%s (%s): %s" % (name, t, victim), level=LOGDEBUG)
+    xbmc.log("SUBDIVX - %s (%s): %s" % (name, t, victim), level=LOGDEBUG)
 
 
 def main():
