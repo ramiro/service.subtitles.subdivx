@@ -11,7 +11,6 @@ from os.path import join as pjoin
 import os.path
 from pprint import pformat
 import re
-import shutil
 import sys
 import tempfile
 import time
