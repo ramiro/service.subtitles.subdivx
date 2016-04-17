@@ -305,6 +305,9 @@ def _wait_for_extract(workdir, base_filecount, base_mtime, limit):
 
 
 def _handle_compressed_subs(workdir, compressed_file):
+    """
+    Uncompressed 'compressed_file' in  'workdir'.
+    """
     MAX_UNZIP_WAIT = 15
     files = os.listdir(workdir)
     filecount = len(files)
@@ -347,6 +350,12 @@ def _handle_compressed_subs(workdir, compressed_file):
 
 
 def _save_subtitles(workdir, content):
+    """
+    Save dowloaded file whose content is in 'content' to a temporary file
+    If it's a compressed one then uncompress it.
+
+    Returns filename of saved file or None.
+    """
     header = content[:4]
     if header == 'Rar!':
         type = '.rar'
@@ -419,6 +428,7 @@ def Download(subdivx_id, workdir):
 
 
 def _double_dot_fix_hack(video_filename):
+    """Corrects filename of downloaded subtitle from Foo-Blah..srt to Foo-Blah.es.srt"""
 
     log(u"video_filename = %s" % video_filename)
 
