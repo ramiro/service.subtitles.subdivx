@@ -455,7 +455,7 @@ def _double_dot_fix_hack(video_filename):
         if xbmcvfs.exists(bad):
             log(u"%s exists" % bad)
             if xbmcvfs.exists(old):
-                log(u"%s exists, renaming" % old)
+                log(u"%s exists, removing" % old)
                 xbmcvfs.delete(old)
             log(u"renaming %s to %s" % (bad, old))
             xbmcvfs.rename(bad, old)
