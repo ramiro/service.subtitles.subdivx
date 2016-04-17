@@ -101,6 +101,21 @@ def is_subs_file(fn):
     return ext.upper() in [e.upper() for e in SUB_EXTS]
 
 
+def is_compressed_file(fname=None, contents=None):
+    if contents is None:
+        assert fname is not None
+        contents = open(fname, 'rb').read()
+    assert len(contents) > 4
+    header = contents[:4]
+    if header == 'Rar!':
+        compression_type = 'RAR'
+    elif header == 'PK\x03\x04':
+        compression_type = 'ZIP'
+    else:
+        compression_type = None
+    return compression_type
+
+
 def log(msg, level=LOGDEBUG):
     fname = sys._getframe(1).f_code.co_name
     s = u"SUBDIVX - %s: %s" % (fname, msg)
@@ -356,20 +371,12 @@ def _save_subtitles(workdir, content):
 
     Returns filename of saved file or None.
     """
-    header = content[:4]
-    if header == 'Rar!':
-        type = '.rar'
-        is_compressed = True
-    elif header == 'PK\x03\x04':
-        type = '.zip'
-        is_compressed = True
-    else:
-        # Never found/downloaded an unpacked subtitles file, but just to be
-        # sure ...
-        # Assume unpacked sub file is a '.srt'
-        type = '.srt'
-        is_compressed = False
-    tmp_fname = pjoin(workdir, "subdivx" + type)
+    ctype = is_compressed_file(contents=content)
+    is_compressed = ctype is not None
+    # Never found/downloaded an unpacked subtitles file, but just to be sure ...
+    # Assume unpacked sub file is a '.srt'
+    cfext = {'RAR': '.rar', 'ZIP': '.zip'}.get(ctype, '.srt')
+    tmp_fname = pjoin(workdir, "subdivx" + cfext)
     log(u"Saving subtitles to '%s'" % tmp_fname)
     try:
         with open(tmp_fname, "wb") as fh:
