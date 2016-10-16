@@ -37,6 +37,9 @@ else:
     import xbmcplugin
     import xbmcvfs
 
+from script.module import html2text
+
+
 __addon__ = xbmcaddon.Addon()
 __author__     = __addon__.getAddonInfo('author')
 __scriptid__   = __addon__.getAddonInfo('id')
@@ -137,6 +140,20 @@ def get_url(url):
     return content
 
 
+def cleanup_subdivx_comment(comment):
+    """Convert the subtitle comment HTML to plain text."""
+    parser = html2text.HTML2Text()
+    parser.unicode_snob = True
+    parser.ignore_emphasis = True
+    parser.ignore_tables = True
+    parser.ignore_links = True
+    parser.body_width = 1000
+    clean_text = parser.handle(comment)
+    # Remove new lines manually
+    clean_text = re.sub('\n', ' ', clean_text)
+    return clean_text.rstrip(' \t')
+
+
 def get_all_subs(searchstring, languageshort, file_orig_path):
     if languageshort != "es":
         return []
@@ -149,7 +166,7 @@ def get_all_subs(searchstring, languageshort, file_orig_path):
         content = get_url(url)
         if content is None or not SUBTITLE_RE.search(content):
             break
-        for match in SUBTITLE_RE.finditer(content):
+        for counter, match in enumerate(SUBTITLE_RE.finditer(content)):
             groups = match.groupdict()
 
             subdivx_id = groups['subdivx_id']
@@ -157,16 +174,7 @@ def get_all_subs(searchstring, languageshort, file_orig_path):
             dls = re.sub(r'[,.]', '', groups['downloads'])
             downloads = int(dls)
 
-            descr = groups['comment']
-            # Remove new lines
-            descr = re.sub('\n', ' ', descr)
-            # Remove Google Ads
-            descr = re.sub(r'<script.+?script>', '', descr,
-                           re.IGNORECASE | re.DOTALL | re.MULTILINE |
-                           re.UNICODE)
-            # Remove HTML tags
-            descr = re.sub(r'<[^<]+?>', '', descr)
-            descr = descr.rstrip(' \t')
+            descr = cleanup_subdivx_comment(groups['comment'].decode(PAGE_ENCODING))
 
             # If our actual video file's name appears in the description
             # then set sync to True because it has better chances of its
@@ -176,12 +184,13 @@ def get_all_subs(searchstring, languageshort, file_orig_path):
             sync = re.search(re.escape(name), descr, re.I) is not None
 
             try:
-                log(u'Subtitles found: (subdivx_id = %s) "%s"' % (subdivx_id,
-                                                                  descr))
+                if not counter:
+                    log(u'Subtitles found for subdivx_id = %s:' % subdivx_id, level=LOGNOTICE)
+                log(u'"%s"' % descr, level=LOGNOTICE)
             except Exception:
                 pass
             item = {
-                'descr': descr.decode(PAGE_ENCODING),
+                'descr': descr,
                 'sync': sync,
                 'subdivx_id': subdivx_id.decode(PAGE_ENCODING),
                 'uploader': groups['uploader'],
