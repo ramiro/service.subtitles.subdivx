@@ -253,13 +253,13 @@ def build_xbmc_item_url(url, item, filename):
     """Return an internal Kodi pseudo-url for the provided sub search result"""
     try:
         xbmc_url = url + urlencode((('id', item['subdivx_id']),
-                                    ('filename', filename)))
+                                    ('filename', filename.encode('utf-8'))))
     except UnicodeEncodeError:
         # Well, go back to trying it with its original latin1 encoding
         try:
             subdivx_id = item['subdivx_id'].encode(PAGE_ENCODING)
             xbmc_url = url + urlencode((('id', subdivx_id),
-                                        ('filename', filename)))
+                                        ('filename', filename.encode('utf-8'))))
         except Exception:
             log('Problematic subdivx_id: %s' % subdivx_id)
             raise
@@ -580,7 +580,7 @@ def main():
     if (action == 'download' and
             __addon__.getSetting('show_nick_in_place_of_lang') == 'true'):
         time.sleep(3)
-        _double_dot_fix_hack(params['filename'])
+        _double_dot_fix_hack(params['filename'].encode('utf-8'))
 
 
 if __name__ == '__main__':
