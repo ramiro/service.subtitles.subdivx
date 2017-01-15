@@ -1,3 +1,7 @@
+0.2.5
+- Clean up sub comment using html2text library.
+- Avoid filename encoding issues. Thanks Iván Ridao Freitas.
+
 0.2.4
 - Logging: Fix misleading phrasing.
 - Internals: Factor out detection of compressed files. Initial maintainer

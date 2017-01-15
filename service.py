@@ -37,7 +37,7 @@ else:
     import xbmcplugin
     import xbmcvfs
 
-from script.module import html2text
+import html2text
 
 
 __addon__ = xbmcaddon.Addon()
@@ -304,6 +304,21 @@ def Search(item):
         append_subtitle(sub, file_original_path)
 
 
+def get_fpath(workdir, fname):
+    if not isinstance(fname, unicode):
+        fname = fname.decode('utf-8')
+    return pjoin(workdir, fname)
+
+
+def get_mtime(fpath, base_mtime):
+    try:
+        mtime = os.stat(fpath).st_mtime
+    except UnicodeEncodeError:
+        # Forces to stop waiting when the filename encoding is wrong
+        mtime = base_mtime + 1
+    return mtime
+
+
 def _wait_for_extract(workdir, base_filecount, base_mtime, limit):
     waittime = 0
     filecount = base_filecount
@@ -319,9 +334,8 @@ def _wait_for_extract(workdir, base_filecount, base_mtime, limit):
         for fname in files:
             if not is_subs_file(fname):
                 continue
-            if not isinstance(fname, unicode):
-                fname = fname.decode('utf-8')
-            mtime = os.stat(pjoin(workdir, fname)).st_mtime
+            fpath = get_fpath(workdir, fname)
+            mtime = get_mtime(fpath, base_mtime)
             if mtime > newest_mtime:
                 newest_mtime = mtime
         waittime += 1
@@ -358,10 +372,9 @@ def _handle_compressed_subs(workdir, compressed_file):
             # sure we get the newly created subtitle file
             if not is_subs_file(fname):
                 continue
-            if not isinstance(fname, unicode):
-                fname = fname.decode('utf-8')
-            fpath = pjoin(workdir, fname)
-            if os.stat(fpath).st_mtime > base_mtime:
+            fpath = get_fpath(workdir, fname)
+            mtime = get_mtime(fpath, base_mtime)
+            if mtime > base_mtime:
                 # unpacked file is a newly created subtitle file
                 retval = True
                 break
