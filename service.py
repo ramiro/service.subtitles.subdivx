@@ -319,65 +319,28 @@ def get_mtime(fpath, base_mtime):
     return mtime
 
 
-def _wait_for_extract(workdir, base_filecount, base_mtime, limit):
-    waittime = 0
-    filecount = base_filecount
-    newest_mtime = base_mtime
-    while (filecount == base_filecount and waittime < limit and
-           newest_mtime == base_mtime):
-        # wait 1 second to let the builtin function 'XBMC.Extract' unpack
-        time.sleep(1)
-        files = os.listdir(workdir)
-        filecount = len(files)
-        # Determine if there is a newer file created (marks that the extraction
-        # has completed)
-        for fname in files:
-            if not is_subs_file(fname):
-                continue
-            fpath = get_fpath(workdir, fname)
-            mtime = get_mtime(fpath, base_mtime)
-            if mtime > newest_mtime:
-                newest_mtime = mtime
-        waittime += 1
-    return waittime != limit
-
-
 def _handle_compressed_subs(workdir, compressed_file):
     """
     Uncompressed 'compressed_file' in  'workdir'.
     """
-    MAX_UNZIP_WAIT = 15
-    files = os.listdir(workdir)
-    filecount = len(files)
-    max_mtime = 0
-    # Determine the newest file
-    for fname in files:
-        if not is_subs_file(fname):
-            continue
-        mtime = os.stat(pjoin(workdir, fname)).st_mtime
-        if mtime > max_mtime:
-            max_mtime = mtime
-    base_mtime = max_mtime
-    # Wait 2 seconds so that the unpacked files are at least 1 second newer
-    time.sleep(2)
+    base_mtime = time.time()
     xbmc.executebuiltin("XBMC.Extract(%s, %s)" % (
                         compressed_file.encode("utf-8"),
-                        workdir.encode("utf-8")))
+                        workdir.encode("utf-8")), True)
 
     retval = False
-    if _wait_for_extract(workdir, filecount, base_mtime, MAX_UNZIP_WAIT):
-        files = os.listdir(workdir)
-        for fname in files:
-            # There could be more subtitle files, so make
-            # sure we get the newly created subtitle file
-            if not is_subs_file(fname):
-                continue
-            fpath = get_fpath(workdir, fname)
-            mtime = get_mtime(fpath, base_mtime)
-            if mtime > base_mtime:
-                # unpacked file is a newly created subtitle file
-                retval = True
-                break
+    files = os.listdir(workdir)
+    for fname in files:
+        # There could be more subtitle files, so make
+        # sure we get the newly created subtitle file
+        if not is_subs_file(fname):
+            continue
+        fpath = get_fpath(workdir, fname)
+        mtime = get_mtime(fpath, base_mtime)
+        if mtime >= base_mtime:
+            # unpacked file is a newly created subtitle file
+            retval = True
+            break
 
     if retval:
         log(u"Unpacked subtitles file '%s'" % fpath)
