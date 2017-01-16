@@ -1,3 +1,9 @@
+0.2.5
+- Improve extract performance, use blocking instead of sleeping for at
+  least 3 or more seconds. Thanks Iván Ridao Freitas.
+- Avoid filename encoding issues. Thanks Iván Ridao Freitas.
+- Clean up sub comment using html2text library.
+
 0.2.4
 - Logging: Fix misleading phrasing.
 - Internals: Factor out detection of compressed files. Initial maintainer
