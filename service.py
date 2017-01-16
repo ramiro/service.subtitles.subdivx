@@ -310,20 +310,10 @@ def get_fpath(workdir, fname):
     return pjoin(workdir, fname)
 
 
-def get_mtime(fpath, base_mtime):
-    try:
-        mtime = os.stat(fpath).st_mtime
-    except UnicodeEncodeError:
-        # Forces to stop waiting when the filename encoding is wrong
-        mtime = base_mtime + 1
-    return mtime
-
-
 def _handle_compressed_subs(workdir, compressed_file):
     """
     Uncompressed 'compressed_file' in  'workdir'.
     """
-    base_mtime = time.time()
     xbmc.executebuiltin("XBMC.Extract(%s, %s)" % (
                         compressed_file.encode("utf-8"),
                         workdir.encode("utf-8")), True)
@@ -336,11 +326,8 @@ def _handle_compressed_subs(workdir, compressed_file):
         if not is_subs_file(fname):
             continue
         fpath = get_fpath(workdir, fname)
-        mtime = get_mtime(fpath, base_mtime)
-        if mtime >= base_mtime:
-            # unpacked file is a newly created subtitle file
-            retval = True
-            break
+        retval = True
+        break
 
     if retval:
         log(u"Unpacked subtitles file '%s'" % fpath)
