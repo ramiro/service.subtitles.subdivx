@@ -37,7 +37,7 @@ else:
     import xbmcplugin
     import xbmcvfs
 
-from script.module import html2text
+import html2text
 
 
 __addon__ = xbmcaddon.Addon()
