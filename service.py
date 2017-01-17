@@ -293,7 +293,7 @@ def Search(item):
     elif tvshow:
         searchstring = "%s S%#02dE%#02d" % (tvshow, int(season), int(episode))
     else:
-        searchstring = title
+        searchstring = '%s%s' % (title, ' (%s)' % item['year'].strip('()') if item.get('year') else '')
     log(u"Search string = %s" % searchstring)
 
     subs_list = get_all_subs(searchstring, "es", file_original_path)

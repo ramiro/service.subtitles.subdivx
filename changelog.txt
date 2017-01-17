@@ -1,6 +1,8 @@
 0.2.5
 - Use html2text lib to scrape comments. Thanks Iván Ridao Freitas for help.
 - Fix handling of movie path on filesystem. Thanks Santiago Ibarra for report.
+- Enhance movie search performance and accuracy. Thanks Iván Ridao Freitas
+  for report.
 
 0.2.4
 - Logging: Fix misleading phrasing.
