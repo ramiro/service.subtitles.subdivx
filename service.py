@@ -56,8 +56,9 @@ SEARCH_PAGE_URL = MAIN_SUBDIVX_URL + \
     "index.php?accion=5&masdesc=&oxdown=1&pg=%(page)s&buscar=%(query)s"
 
 INTERNAL_LINK_URL_BASE = "plugin://%s/?"
-SUB_EXTS = ['srt', 'sub', 'txt']
+SUB_EXTS = ['SRT', 'SUB', 'TXT']
 HTTP_USER_AGENT = "User-Agent=Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.2.3) Gecko/20100401 Firefox/3.6.3 ( .NET CLR 3.5.30729)"
+FORCED_SUB_SENTINELS = ['FORZADO', 'FORCED']
 
 PAGE_ENCODING = 'latin1'
 
@@ -101,7 +102,14 @@ DOWNLOAD_LINK_RE = re.compile(r'bajar.php\?id=(?P<id>.*?)&u=(?P<u>[^"\']+?)', re
 def is_subs_file(fn):
     """Detect if the file has an extension we recognise as subtitle."""
     ext = fn.split('.')[-1]
-    return ext.upper() in [e.upper() for e in SUB_EXTS]
+    return ext.upper() in SUB_EXTS
+
+
+def is_forced_subs_file(fn):
+    """Detect if the file has some text in its filename we recognise as forced
+    subtitle."""
+    target = '.'.join(fn.split('.')[:-1]) if '.' in fn else fn
+    return any(s in target.upper() for s in FORCED_SUB_SENTINELS)
 
 
 def is_compressed_file(fname=None, contents=None):
@@ -327,6 +335,7 @@ def _handle_compressed_subs(workdir, compressed_file):
 
     files = os.listdir(workdir)
     files = [f for f in files if is_subs_file(f)]
+    files = [f for f in files if not is_forced_subs_file(f)]
     for fname in files:
         if not isinstance(fname, unicode):
             fname = fname.decode('utf-8')
