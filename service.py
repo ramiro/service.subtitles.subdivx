@@ -275,6 +275,23 @@ def build_xbmc_item_url(url, item, filename):
     return xbmc_url
 
 
+def build_tvshow_searchstring(item):
+    parts = ['%s' % item['tvshow']]
+    try:
+        season = int(item['season'])
+    except:
+        pass
+    else:
+        parts.append(' S%#02d' % season)
+        try:
+            episode = int(item['episode'])
+        except:
+            pass
+        else:
+            parts.append('E%#02d' % episode)
+    return ''.join(parts)
+
+
 def Search(item):
     """Called when subtitle download is requested from XBMC."""
     log(u'item = %s' % pformat(item))
@@ -283,17 +300,13 @@ def Search(item):
     # Once done, set xbmcgui.ListItem() below and pass it to
     # xbmcplugin.addDirectoryItem()
     file_original_path = item['file_original_path']
-    title = item['title']
-    tvshow = item['tvshow']
-    season = item['season']
-    episode = item['episode']
 
     if item['manual_search']:
         searchstring = unquote(item['manual_search_string'])
-    elif tvshow:
-        searchstring = "%s S%#02dE%#02d" % (tvshow, int(season), int(episode))
+    elif item['tvshow']:
+        searchstring = build_tvshow_searchstring(item)
     else:
-        searchstring = '%s%s' % (title, ' (%s)' % item['year'].strip('()') if item.get('year') else '')
+        searchstring = '%s%s' % (item['title'], ' (%s)' % item['year'].strip('()') if item.get('year') else '')
     log(u"Search string = %s" % searchstring)
 
     subs_list = get_all_subs(searchstring, "es", file_original_path)
