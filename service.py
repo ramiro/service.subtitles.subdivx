@@ -185,8 +185,8 @@ def get_all_subs(searchstring, languageshort, file_orig_path):
 
             try:
                 if not counter:
-                    log(u'Subtitles found for subdivx_id = %s:' % subdivx_id, level=LOGNOTICE)
-                log(u'"%s"' % descr, level=LOGNOTICE)
+                    log(u'Subtitles found for subdivx_id = %s:' % subdivx_id)
+                log(u'"%s"' % descr)
             except Exception:
                 pass
             item = {
