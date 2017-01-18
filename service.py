@@ -56,7 +56,7 @@ SEARCH_PAGE_URL = MAIN_SUBDIVX_URL + \
     "index.php?accion=5&masdesc=&oxdown=1&pg=%(page)s&buscar=%(query)s"
 
 INTERNAL_LINK_URL_BASE = "plugin://%s/?"
-SUB_EXTS = ['SRT', 'SUB', 'TXT']
+SUB_EXTS = ['SRT', 'SUB', 'SSA']
 HTTP_USER_AGENT = "User-Agent=Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.2.3) Gecko/20100401 Firefox/3.6.3 ( .NET CLR 3.5.30729)"
 FORCED_SUB_SENTINELS = ['FORZADO', 'FORCED']
 
