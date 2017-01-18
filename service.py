@@ -335,13 +335,17 @@ def _handle_compressed_subs(workdir, compressed_file):
 
     files = os.listdir(workdir)
     files = [f for f in files if is_subs_file(f)]
-    files = [f for f in files if not is_forced_subs_file(f)]
+    found_files = []
     for fname in files:
         if not isinstance(fname, unicode):
             fname = fname.decode('utf-8')
-        return pjoin(workdir, fname)
-    log(u"Failed to unpack subtitles", level=LOGSEVERE)
-    return None
+        found_files.append({
+            'forced': is_forced_subs_file(fname),
+            'path': pjoin(workdir, fname)
+        })
+    if not found_files:
+        log(u"Failed to unpack subtitles", level=LOGSEVERE)
+    return found_files
 
 
 def _save_subtitles(workdir, content):
@@ -363,15 +367,11 @@ def _save_subtitles(workdir, content):
             fh.write(content)
     except Exception:
         log(u"Failed to save subtitles to '%s'" % tmp_fname, level=LOGSEVERE)
-        return None
+        return []
     else:
         if is_compressed:
-            fname = _handle_compressed_subs(workdir, tmp_fname)
-            if fname is not None:
-                return fname
-        else:
-            return tmp_fname
-    return None
+            return _handle_compressed_subs(workdir, tmp_fname)
+        return [{'path': tmp_fname, 'forced': False}]
 
 
 def Download(subdivx_id, workdir):
@@ -408,10 +408,8 @@ def Download(subdivx_id, workdir):
         log(u"Got no content when downloading actual subtitle file",
             level=LOGFATAL)
         return []
-    saved_fname = _save_subtitles(workdir, content)
-    if saved_fname is None:
-        return []
-    return [saved_fname]
+    saved_fnames = _save_subtitles(workdir, content)
+    return saved_fnames
 
 
 def _double_dot_fix_hack(video_filename):
@@ -550,8 +548,14 @@ def main():
         # We can return more than one subtitle for multi CD versions, for now
         # we are still working out how to handle that in XBMC core
         for sub in subs:
-            listitem = xbmcgui.ListItem(label=sub)
-            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=sub,
+            # XXX: Kodi still can't handle multiple subtitles files returned
+            # from an addon, it will always use the first file returned. So
+            # there is no point in reporting a forced subtitle file to it.
+            # See https://github.com/ramiro/service.subtitles.subdivx/issues/14
+            if sub['forced']:
+                continue
+            listitem = xbmcgui.ListItem(label=sub['path'])
+            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=sub['path'],
                                         listitem=listitem, isFolder=False)
 
     # Send end of directory to XBMC
