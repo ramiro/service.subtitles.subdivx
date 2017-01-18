@@ -428,15 +428,16 @@ def _double_dot_fix_hack(video_filename):
     parts = work_path.rsplit('.', 1)
     if len(parts) > 1:
         rest = parts[0]
-        bad = rest + '..' + 'srt'
-        old = rest + '.es.' + 'srt'
-        if xbmcvfs.exists(bad):
-            log(u"%s exists" % bad)
-            if xbmcvfs.exists(old):
-                log(u"%s exists, removing" % old)
-                xbmcvfs.delete(old)
-            log(u"renaming %s to %s" % (bad, old))
-            xbmcvfs.rename(bad, old)
+        for ext in ('srt', 'ssa', 'sub', 'idx'):
+            bad = rest + '..' + ext
+            old = rest + '.es.' + ext
+            if xbmcvfs.exists(bad):
+                log(u"%s exists" % bad)
+                if xbmcvfs.exists(old):
+                    log(u"%s exists, removing" % old)
+                    xbmcvfs.delete(old)
+                log(u"renaming %s to %s" % (bad, old))
+                xbmcvfs.rename(bad, old)
 
 
 def _subtitles_setting(name):
