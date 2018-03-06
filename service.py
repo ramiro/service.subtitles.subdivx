@@ -45,7 +45,7 @@ __addon__ = xbmcaddon.Addon()
 __author__     = __addon__.getAddonInfo('author')
 __scriptid__   = __addon__.getAddonInfo('id')
 __scriptname__ = __addon__.getAddonInfo('name')
-__version__    = '0.2.11'
+__version__    = '0.2.12'
 __language__   = __addon__.getLocalizedString
 
 __cwd__        = xbmc.translatePath(__addon__.getAddonInfo('path')).decode("utf-8")
@@ -396,8 +396,7 @@ def Download(subdivx_id, workdir):
         return []
     match = DETAIL_PAGE_LINK_RE.search(html_content)
     if match is None:
-        log(u"Intermediate detail page for selected subtitle or expected content not found. Handling it as final download page",
-            level=LOGWARNING)
+        log(u"Intermediate detail page for selected subtitle or expected content not found. Handling it as final download page")
     else:
         id_ = match.group('id')
         # Fetch and scrape final page
@@ -407,8 +406,7 @@ def Download(subdivx_id, workdir):
         return []
     match = DOWNLOAD_LINK_RE.search(html_content)
     if match is None:
-        log(u"Expected content not found in final download page",
-            level=LOGFATAL)
+        log(u"Expected content not found in final download page")
         return []
     id_, u = match.group('id', 'u')
     actual_subtitle_file_url = MAIN_SUBDIVX_URL + "bajar.php?id=" + id_ + "&u=" + u
