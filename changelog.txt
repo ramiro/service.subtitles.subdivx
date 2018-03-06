@@ -1,3 +1,8 @@
+0.2.10
+- Attempt 1 at fixing decompression of RAR files on Kodi 18. This introduces
+  a dependency on the vfs.libarchive binary addon for Kodi>=18.
+- Users need to activate and/or install 'Archive support' add-on manually.
+
 0.2.5
 - Use html2text lib to scrape comments. Thanks Iván Ridao Freitas for help.
 - Fix handling of movie path on filesystem. Thanks Santiago Ibarra for report.

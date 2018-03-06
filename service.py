@@ -325,13 +325,21 @@ def Search(item):
         append_subtitle(sub, file_original_path)
 
 
-def _handle_compressed_subs(workdir, compressed_file):
+def _handle_compressed_subs(workdir, compressed_file, ext):
     """
     Uncompress 'compressed_file' in 'workdir'.
     """
-    xbmc.executebuiltin("XBMC.Extract(%s, %s)" % (
-                        compressed_file.encode("utf-8"),
-                        workdir.encode("utf-8")), True)
+    kodi_major_version = int(xbmc.getInfoLabel('System.BuildVersion').split('.')[0])
+    if ext == 'rar' and kodi_major_version >= 18:
+        src = 'archive' + '://' + quote_plus(compressed_file) + '/'
+        (cdirs, cfiles) = xbmcvfs.listdir(src)
+        for cfile in cfiles:
+            fsrc = '%s%s' % (src, cfile)
+            xbmcvfs.copy(fsrc, workdir + cfile)
+    else:
+        xbmc.executebuiltin("XBMC.Extract(%s, %s)" % (
+                            compressed_file.encode("utf-8"),
+                            workdir.encode("utf-8")), True)
 
     files = os.listdir(workdir)
     files = [f for f in files if is_subs_file(f)]
@@ -359,8 +367,8 @@ def _save_subtitles(workdir, content):
     is_compressed = ctype is not None
     # Never found/downloaded an unpacked subtitles file, but just to be sure ...
     # Assume unpacked sub file is a '.srt'
-    cfext = {'RAR': '.rar', 'ZIP': '.zip'}.get(ctype, '.srt')
-    tmp_fname = pjoin(workdir, "subdivx" + cfext)
+    cfext = {'RAR': 'rar', 'ZIP': 'zip'}.get(ctype, 'srt')
+    tmp_fname = pjoin(workdir, "subdivx." + cfext)
     log(u"Saving subtitles to '%s'" % tmp_fname)
     try:
         with open(tmp_fname, "wb") as fh:
@@ -370,7 +378,7 @@ def _save_subtitles(workdir, content):
         return []
     else:
         if is_compressed:
-            return _handle_compressed_subs(workdir, tmp_fname)
+            return _handle_compressed_subs(workdir, tmp_fname, cfext)
         return [{'path': tmp_fname, 'forced': False}]
 
 
