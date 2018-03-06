@@ -11,6 +11,7 @@ from os.path import join as pjoin
 import os.path
 from pprint import pformat
 import re
+import shutil
 import sys
 import tempfile
 import time
@@ -44,7 +45,7 @@ __addon__ = xbmcaddon.Addon()
 __author__     = __addon__.getAddonInfo('author')
 __scriptid__   = __addon__.getAddonInfo('id')
 __scriptname__ = __addon__.getAddonInfo('name')
-__version__    = '0.2.10'
+__version__    = '0.2.11'
 __language__   = __addon__.getLocalizedString
 
 __cwd__        = xbmc.translatePath(__addon__.getAddonInfo('path')).decode("utf-8")
@@ -490,6 +491,19 @@ def debug_dump_path(victim, name):
     xbmc.log("SUBDIVX - %s (%s): %s" % (name, t, victim), level=LOGDEBUG)
 
 
+def _cleanup_tempdir(dir_path):
+    try:
+        shutil.rmtree(dir_path, ignore_errors=True)
+    except Exception:
+        log(u"Failed to remove %s" % dir_path, level=LOGWARNING)
+
+
+def _cleanup_tempdirs(profile_path):
+    dirs, _ = xbmcvfs.listdir(profile_path)
+    for dir_path in dirs[:10]:
+        _cleanup_tempdir(os.path.join(profile_path, dir_path))
+
+
 def main():
     """Main entry point of the script when it is invoked by XBMC."""
     # Get parameters from XBMC and launch actions
@@ -548,6 +562,7 @@ def main():
                         "xbmc.translatePath(__addon__.getAddonInfo('profile'))")
         debug_dump_path(__profile__, '__profile__')
         xbmcvfs.mkdirs(__profile__)
+        _cleanup_tempdirs(__profile__)
         workdir = tempfile.mkdtemp(dir=__profile__)
         # Make sure it ends with a path separator (Kodi 14)
         workdir = workdir + os.path.sep
@@ -573,6 +588,7 @@ def main():
     if (action == 'download' and
             __addon__.getSetting('show_nick_in_place_of_lang') == 'true'):
         time.sleep(3)
+        _cleanup_tempdir(workdir)
         _double_dot_fix_hack(params['filename'].encode('utf-8'))
 
 

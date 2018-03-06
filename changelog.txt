@@ -1,3 +1,6 @@
+0.2.11
+- Remove disposable temporary directory after using it.
+
 0.2.10
 - Attempt 1 at fixing decompression of RAR files on Kodi 18. This introduces
   a dependency on the vfs.libarchive binary addon for Kodi>=18.
