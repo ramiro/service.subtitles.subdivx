@@ -11,6 +11,7 @@
              library="service.py" />
   <extension point="xbmc.addon.metadata">
     <summary lang="en">Subdivx.com</summary>
+    <description lang="es">Busca y descarga subtítulos desde Subdivx.com</description>
     <description lang="en">Search and download subtitles from Subdivx.com</description>
     <disclaimer lang="en"></disclaimer>
     <language>es en</language>
@@ -21,6 +22,8 @@
     <email></email>
     <source>https://github.com/ramiro/service.subtitles.subdivx</source>
   </extension>
-  <news>v0.2.13
+  <news lang="es">v0.2.13
+  - Se agrega compatibilidad con Kodi 18 Leia. Necesita instalar manualmente el add-on "Archive support" (por spiff)</news>
+  <news lang="en">v0.2.13
   - Added compatibility with Kodi 18 Leia. You need to install manually the "Archive support" (by spiff) add-on</news>
 </addon>
