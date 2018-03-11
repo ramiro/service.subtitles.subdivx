@@ -1,3 +1,6 @@
+0.2.13
+- Add 'news' section to addon.xml
+
 0.2.12
 - Comply with new Kodi policies: Less verbose logging by default. Achieved
   by moving most of it to LOGDEBUG level
