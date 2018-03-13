@@ -45,7 +45,7 @@ __addon__ = xbmcaddon.Addon()
 __author__     = __addon__.getAddonInfo('author')
 __scriptid__   = __addon__.getAddonInfo('id')
 __scriptname__ = __addon__.getAddonInfo('name')
-__version__    = '0.2.13'
+__version__    = '0.2.14'
 __language__   = __addon__.getLocalizedString
 
 __cwd__        = xbmc.translatePath(__addon__.getAddonInfo('path')).decode("utf-8")
@@ -554,6 +554,8 @@ def main():
             item['file_original_path'] = stackPath[0][8:]
 
         Search(item)
+        # Send end of directory to XBMC
+        xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
     elif action == 'download':
         debug_dump_path(xbmc.translatePath(__addon__.getAddonInfo('profile')),
@@ -579,15 +581,13 @@ def main():
             listitem = xbmcgui.ListItem(label=sub['path'])
             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=sub['path'],
                                         listitem=listitem, isFolder=False)
+        # Send end of directory to XBMC
+        xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
-    # Send end of directory to XBMC
-    xbmcplugin.endOfDirectory(int(sys.argv[1]))
-
-    if (action == 'download' and
-            __addon__.getSetting('show_nick_in_place_of_lang') == 'true'):
-        time.sleep(3)
         _cleanup_tempdir(workdir)
-        _double_dot_fix_hack(params['filename'].encode('utf-8'))
+        if __addon__.getSetting('show_nick_in_place_of_lang') == 'true':
+            time.sleep(2)
+            _double_dot_fix_hack(params['filename'].encode('utf-8'))
 
 
 if __name__ == '__main__':
