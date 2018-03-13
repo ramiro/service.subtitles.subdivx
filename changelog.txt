@@ -1,3 +1,6 @@
+0.3.0
+- Release changes since 0.2.5
+
 0.2.13
 - Add 'news' section to addon.xml. Translate it and description to Spanish
 
