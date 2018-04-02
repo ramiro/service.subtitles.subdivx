@@ -1,3 +1,8 @@
+0.3.7
+- Remove computation of subtitles rating purely based on number of downloads.
+  It will be of lesser importance once we use guessit to match subtitles with
+  video names.
+
 0.3.6
 - Remove handling of sync flag. It will be of lesser importance once we use
   guessit to match subtitles with video names.

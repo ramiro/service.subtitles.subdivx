@@ -48,7 +48,7 @@ __addon__ = xbmcaddon.Addon()
 __author__     = __addon__.getAddonInfo('author')
 __scriptid__   = __addon__.getAddonInfo('id')
 __scriptname__ = __addon__.getAddonInfo('name')
-__version__    = '0.3.6'
+__version__    = '0.3.7'
 __language__   = __addon__.getLocalizedString
 
 __cwd__        = xbmc.translatePath(__addon__.getAddonInfo('path')).decode("utf-8")
@@ -209,31 +209,6 @@ def get_all_subs(searchstring, languageshort, file_orig_path):
     return subs_list
 
 
-def compute_ratings(subs_list):
-    """
-    Calculate the rating figures (from zero to five) in a relative fashion
-    based on number of downloads.
-
-    This is later converted by XBMC/Kodi in a zero to five stars GUI.
-
-    Ideally, we should be able to use a smarter number instead of just the
-    download count of every subtitle but it seems in Subdivx the 'score' value
-    has no reliable value and there isn't a user ranking system in place
-    we could use to deduce the quality of a contribution.
-    """
-    max_dl_count = 0
-    for sub in subs_list:
-        dl_cnt = sub.get('downloads', 0)
-        if dl_cnt > max_dl_count:
-            max_dl_count = dl_cnt
-    for sub in subs_list:
-        if max_dl_count:
-            sub['rating'] = int((sub['downloads'] / float(max_dl_count)) * 5)
-        else:
-            sub['rating'] = 0
-    log(u"subs_list = %s" % pformat(subs_list))
-
-
 def append_subtitle(item, filename):
     if __addon__.getSetting('show_nick_in_place_of_lang') == 'true':
         item_label = item['uploader']
@@ -242,7 +217,7 @@ def append_subtitle(item, filename):
     listitem = xbmcgui.ListItem(
         label=item_label,
         label2=item['descr'],
-        iconImage=str(item['rating']),
+        iconImage='0',
         thumbnailImage=''
     )
     listitem.setProperty("hearing_imp",
@@ -323,7 +298,7 @@ def Search(item):
     else:
         subs_list = get_all_subs(searchstring, 'es', file_original_path)
 
-    compute_ratings(subs_list)
+    log(u"subs_list = %s" % pformat(subs_list))
 
     for sub in subs_list:
         append_subtitle(sub, file_original_path)
