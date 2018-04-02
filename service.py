@@ -45,7 +45,7 @@ __addon__ = xbmcaddon.Addon()
 __author__     = __addon__.getAddonInfo('author')
 __scriptid__   = __addon__.getAddonInfo('id')
 __scriptname__ = __addon__.getAddonInfo('name')
-__version__    = '0.3.0'
+__version__    = '0.3.1'
 __language__   = __addon__.getLocalizedString
 
 __cwd__        = xbmc.translatePath(__addon__.getAddonInfo('path')).decode("utf-8")
@@ -584,10 +584,10 @@ def main():
         # Send end of directory to XBMC
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
-        _cleanup_tempdir(workdir)
+        time.sleep(2)
         if __addon__.getSetting('show_nick_in_place_of_lang') == 'true':
-            time.sleep(2)
             _double_dot_fix_hack(params['filename'].encode('utf-8'))
+        _cleanup_tempdir(workdir)
 
 
 if __name__ == '__main__':
