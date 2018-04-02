@@ -1,3 +1,6 @@
+0.3.3
+- Implemente caching of web search results. Use a cache validity of one hour.
+
 0.3.2
 - Be less verbose when removing old temporary dirs.
 

@@ -12,6 +12,10 @@ import os.path
 from pprint import pformat
 import re
 import shutil
+try:
+    import StorageServer
+except Exception:
+    import storageserverdummy as StorageServer
 import sys
 import tempfile
 import time
@@ -45,7 +49,7 @@ __addon__ = xbmcaddon.Addon()
 __author__     = __addon__.getAddonInfo('author')
 __scriptid__   = __addon__.getAddonInfo('id')
 __scriptname__ = __addon__.getAddonInfo('name')
-__version__    = '0.3.2'
+__version__    = '0.3.3'
 __language__   = __addon__.getLocalizedString
 
 __cwd__        = xbmc.translatePath(__addon__.getAddonInfo('path')).decode("utf-8")
@@ -62,6 +66,8 @@ HTTP_USER_AGENT = "User-Agent=Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv
 FORCED_SUB_SENTINELS = ['FORZADO', 'FORCED']
 
 PAGE_ENCODING = 'latin1'
+
+CACHE_TTL_IN_HOURS = 1
 
 
 # ============================
@@ -318,7 +324,8 @@ def Search(item):
         searchstring = '%s%s' % (item['title'], ' (%s)' % item['year'].strip('()') if item.get('year') else '')
     log(u"Search string = %s" % searchstring)
 
-    subs_list = get_all_subs(searchstring, "es", file_original_path)
+    cache = StorageServer.StorageServer('service.subtitles.subdivx', CACHE_TTL_IN_HOURS)
+    subs_list = cache.cacheFunction(get_all_subs, searchstring, 'es', file_original_path)
 
     compute_ratings(subs_list)
 
