@@ -45,7 +45,7 @@ __addon__ = xbmcaddon.Addon()
 __author__     = __addon__.getAddonInfo('author')
 __scriptid__   = __addon__.getAddonInfo('id')
 __scriptname__ = __addon__.getAddonInfo('name')
-__version__    = '0.3.1'
+__version__    = '0.3.2'
 __language__   = __addon__.getLocalizedString
 
 __cwd__        = xbmc.translatePath(__addon__.getAddonInfo('path')).decode("utf-8")
@@ -489,17 +489,24 @@ def debug_dump_path(victim, name):
     xbmc.log("SUBDIVX - %s (%s): %s" % (name, t, victim), level=LOGDEBUG)
 
 
-def _cleanup_tempdir(dir_path):
+def _cleanup_tempdir(dir_path, verbose=False):
     try:
         shutil.rmtree(dir_path, ignore_errors=True)
     except Exception:
-        log(u"Failed to remove %s" % dir_path, level=LOGWARNING)
+        if verbose:
+            log(u"Failed to remove %s" % dir_path, level=LOGWARNING)
+        return False
+    return True
 
 
 def _cleanup_tempdirs(profile_path):
     dirs, _ = xbmcvfs.listdir(profile_path)
-    for dir_path in dirs[:10]:
-        _cleanup_tempdir(os.path.join(profile_path, dir_path))
+    total, ok = 0, 0
+    for total, dir_path in enumerate(dirs[:10]):
+        result = _cleanup_tempdir(os.path.join(profile_path, dir_path), verbose=False)
+        if result:
+            ok += 1
+    log(u"Results: %d of %d dirs removed" % (ok, total + 1), level=LOGDEBUG)
 
 
 def main():
@@ -587,7 +594,7 @@ def main():
         time.sleep(2)
         if __addon__.getSetting('show_nick_in_place_of_lang') == 'true':
             _double_dot_fix_hack(params['filename'].encode('utf-8'))
-        _cleanup_tempdir(workdir)
+        _cleanup_tempdir(workdir, verbose=True)
 
 
 if __name__ == '__main__':
