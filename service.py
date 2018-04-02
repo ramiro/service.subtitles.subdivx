@@ -48,7 +48,7 @@ __addon__ = xbmcaddon.Addon()
 __author__     = __addon__.getAddonInfo('author')
 __scriptid__   = __addon__.getAddonInfo('id')
 __scriptname__ = __addon__.getAddonInfo('name')
-__version__    = '0.3.5'
+__version__    = '0.3.6'
 __language__   = __addon__.getLocalizedString
 
 __cwd__        = xbmc.translatePath(__addon__.getAddonInfo('path')).decode("utf-8")
@@ -190,13 +190,6 @@ def get_all_subs(searchstring, languageshort, file_orig_path):
 
             descr = cleanup_subdivx_comment(groups['comment'].decode(PAGE_ENCODING))
 
-            # If our actual video file's name appears in the description
-            # then set sync to True because it has better chances of its
-            # synchronization to match
-            _, fn = os.path.split(file_orig_path)
-            name, _ = os.path.splitext(fn)
-            sync = re.search(re.escape(name), descr, re.I) is not None
-
             try:
                 if not counter:
                     log(u'Subtitles found for subdivx_id = %s:' % subdivx_id)
@@ -205,7 +198,6 @@ def get_all_subs(searchstring, languageshort, file_orig_path):
                 pass
             item = {
                 'descr': descr,
-                'sync': sync,
                 'subdivx_id': subdivx_id.decode(PAGE_ENCODING),
                 'uploader': groups['uploader'],
                 'downloads': downloads,
@@ -214,8 +206,6 @@ def get_all_subs(searchstring, languageshort, file_orig_path):
             subs_list.append(item)
         page += 1
 
-    # Put subs with sync=True at the top
-    subs_list = sorted(subs_list, key=lambda s: s['sync'], reverse=True)
     return subs_list
 
 
@@ -255,7 +245,6 @@ def append_subtitle(item, filename):
         iconImage=str(item['rating']),
         thumbnailImage=''
     )
-    listitem.setProperty("sync", 'true' if item["sync"] else 'false')
     listitem.setProperty("hearing_imp",
                          'true' if item.get("hearing_imp", False) else 'false')
 

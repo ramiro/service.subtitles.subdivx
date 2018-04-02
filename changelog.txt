@@ -1,3 +1,7 @@
+0.3.6
+- Remove handling of sync flag. It will be of lesser importance once we use
+  guessit to match subtitles with video names.
+
 0.3.3
 - Implemente caching of web search results. Use a cache validity of one hour.
 
