@@ -49,7 +49,7 @@ __addon__ = xbmcaddon.Addon()
 __author__     = __addon__.getAddonInfo('author')
 __scriptid__   = __addon__.getAddonInfo('id')
 __scriptname__ = __addon__.getAddonInfo('name')
-__version__    = '0.3.3'
+__version__    = '0.3.4'
 __language__   = __addon__.getLocalizedString
 
 __cwd__        = xbmc.translatePath(__addon__.getAddonInfo('path')).decode("utf-8")
@@ -66,8 +66,6 @@ HTTP_USER_AGENT = "User-Agent=Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv
 FORCED_SUB_SENTINELS = ['FORZADO', 'FORCED']
 
 PAGE_ENCODING = 'latin1'
-
-CACHE_TTL_IN_HOURS = 1
 
 
 # ============================
@@ -324,8 +322,16 @@ def Search(item):
         searchstring = '%s%s' % (item['title'], ' (%s)' % item['year'].strip('()') if item.get('year') else '')
     log(u"Search string = %s" % searchstring)
 
-    cache = StorageServer.StorageServer('service.subtitles.subdivx', CACHE_TTL_IN_HOURS)
-    subs_list = cache.cacheFunction(get_all_subs, searchstring, 'es', file_original_path)
+    cache_ttl_value = __addon__.getSetting('cache_ttl')
+    try:
+        cache_ttl = int(cache_ttl_value)
+    except Exception:
+        cache_ttl = 0
+    if cache_ttl:
+        cache = StorageServer.StorageServer('service.subtitles.subdivx', cache_ttl / 60.0)
+        subs_list = cache.cacheFunction(get_all_subs, searchstring, 'es', file_original_path)
+    else:
+        subs_list = get_all_subs(searchstring, 'es', file_original_path)
 
     compute_ratings(subs_list)
 
