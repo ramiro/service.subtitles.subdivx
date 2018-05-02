@@ -1,3 +1,8 @@
+0.3.8
+- First attempt at ranking & ordering of subtitles by matching data extracted
+  by guessit from the video filename against Subdivx subtitle submitter
+  description comment post.
+
 0.3.7
 - Remove computation of subtitles rating purely based on number of downloads.
   It will be of lesser importance once we use guessit to match subtitles with
@@ -7,11 +12,17 @@
 - Remove handling of sync flag. It will be of lesser importance once we use
   guessit to match subtitles with video names.
 
+0.3.5
+- Don't use time.sleep()
+
+0.3.4
+- Made cache TTL configurable by the user
+
 0.3.3
-- Implemente caching of web search results. Use a cache validity of one hour.
+- Implement caching of web search results. Use a cache validity of one hour.
 
 0.3.2
-- Be less verbose when removing old temporary dirs.
+- Be less verbose when removing old temporary dirs. Don't use time.sleep()
 
 0.3.1
 - Attempt at fixing a timing bug that can happen when removing the temporary

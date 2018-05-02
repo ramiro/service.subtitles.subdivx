@@ -5,6 +5,8 @@
 # Port to XBMC 13 Gotham subtitles infrastructure: cramm, Mar 2014
 
 from __future__ import print_function
+
+import collections
 from json import loads
 import os
 from os.path import join as pjoin
@@ -41,6 +43,7 @@ else:
     import xbmcplugin
     import xbmcvfs
 
+import guessit
 import html2text
 
 
@@ -48,7 +51,7 @@ __addon__ = xbmcaddon.Addon()
 __author__     = __addon__.getAddonInfo('author')
 __scriptid__   = __addon__.getAddonInfo('id')
 __scriptname__ = __addon__.getAddonInfo('name')
-__version__    = '0.3.7'
+__version__    = '0.3.8'
 __language__   = __addon__.getLocalizedString
 
 __cwd__        = xbmc.translatePath(__addon__.getAddonInfo('path')).decode("utf-8")
@@ -68,6 +71,15 @@ PAGE_ENCODING = 'latin1'
 
 kodi_major_version = None
 
+RANKING_WEIGHTS = (
+    'format',
+    'video_codec',
+    'release_group',
+    'container',
+    'title',
+    'year',
+)
+Score = collections.namedtuple('Score', RANKING_WEIGHTS)
 
 # ============================
 # Regular expression patterns
@@ -168,7 +180,34 @@ def cleanup_subdivx_comment(comment):
     return clean_text.rstrip(' \t')
 
 
-def get_all_subs(searchstring, languageshort, file_orig_path):
+def sort_by_relevance(subs_list, item):
+    log(u'item = %s' % pformat(item))
+    guess = item['guess']
+    lcase_atoms = {}
+    master_score_dict = dict([(name, 0) for name in RANKING_WEIGHTS])
+    for factor in RANKING_WEIGHTS:
+        if guess.get(factor, None):
+            master_score_dict[factor] = 1
+            lcase_atoms[factor] = str(guess[factor]).lower()
+    master_score = Score(**master_score_dict)
+    log(u"master_score = %r" % repr(master_score))
+    log(u"lcase_atoms = %s" % pformat(lcase_atoms))
+
+    for result_item in subs_list:
+        score_dict = dict(master_score_dict)
+        lcase_description = result_item['descr'].lower()
+        for factor in RANKING_WEIGHTS:
+            if not master_score_dict[factor]:
+                continue
+            score_dict[factor] = 1 if lcase_atoms[factor] in lcase_description else -1
+        score = Score(**score_dict)
+        log(u"score = %r" % repr(score))
+        result_item['score'] = score
+
+    return sorted(subs_list, key=lambda x: x['score'], reverse=True)
+
+
+def get_all_subs(searchstring, languageshort, item):
     if languageshort != "es":
         return []
     subs_list = []
@@ -193,20 +232,20 @@ def get_all_subs(searchstring, languageshort, file_orig_path):
             try:
                 if not counter:
                     log(u'Subtitles found for subdivx_id = %s:' % subdivx_id)
-                log(u'"%s"' % descr)
+                # log(u'"%s"' % descr)
             except Exception:
                 pass
-            item = {
+            result_item = {
                 'descr': descr,
                 'subdivx_id': subdivx_id.decode(PAGE_ENCODING),
                 'uploader': groups['uploader'],
                 'downloads': downloads,
                 'score': int(groups['calif']),
             }
-            subs_list.append(item)
+            subs_list.append(result_item)
         page += 1
 
-    return subs_list
+    return sort_by_relevance(subs_list, item)
 
 
 def append_subtitle(item, filename):
@@ -272,12 +311,11 @@ def build_tvshow_searchstring(item):
 
 def Search(item):
     """Called when subtitle download is requested from XBMC."""
-    log(u'item = %s' % pformat(item))
+    # log(u'item = %s' % pformat(item))
     # Do what's needed to get the list of subtitles from service site
     # use item["some_property"] that was set earlier.
     # Once done, set xbmcgui.ListItem() below and pass it to
     # xbmcplugin.addDirectoryItem()
-    file_original_path = item['file_original_path']
 
     if item['manual_search']:
         searchstring = unquote(item['manual_search_string'])
@@ -292,16 +330,17 @@ def Search(item):
         cache_ttl = int(cache_ttl_value)
     except Exception:
         cache_ttl = 0
+    cache_ttl = 0
     if cache_ttl:
         cache = StorageServer.StorageServer('service.subtitles.subdivx', cache_ttl / 60.0)
-        subs_list = cache.cacheFunction(get_all_subs, searchstring, 'es', file_original_path)
+        subs_list = cache.cacheFunction(get_all_subs, searchstring, 'es', item)
     else:
-        subs_list = get_all_subs(searchstring, 'es', file_original_path)
+        subs_list = get_all_subs(searchstring, 'es', item)
 
     log(u"subs_list = %s" % pformat(subs_list))
 
     for sub in subs_list:
-        append_subtitle(sub, file_original_path)
+        append_subtitle(sub, item['file_original_path'])
 
 
 def _handle_compressed_subs(workdir, compressed_file, ext):
@@ -494,6 +533,12 @@ def sleep(secs):
         xbmc.sleep(1000 * secs)
 
 
+def get_guessit_info(item):
+    file_path = item['file_original_path'].split('/')[-1]
+    matches_dict = guessit.guessit(file_path)
+    item['guess'] = matches_dict
+
+
 def main():
     """Main entry point of the script when it is invoked by XBMC."""
     global kodi_major_version
@@ -546,6 +591,8 @@ def main():
         elif "stack://" in item['file_original_path']:
             stackPath = item['file_original_path'].split(" , ")
             item['file_original_path'] = stackPath[0][8:]
+
+        get_guessit_info(item)
 
         Search(item)
         # Send end of directory to XBMC
