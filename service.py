@@ -14,7 +14,6 @@ import re
 import shutil
 import sys
 import tempfile
-import time
 from unicodedata import normalize
 from urllib import FancyURLopener, unquote, quote_plus, urlencode, quote
 from urlparse import parse_qs
@@ -62,6 +61,8 @@ HTTP_USER_AGENT = "User-Agent=Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv
 FORCED_SUB_SENTINELS = ['FORZADO', 'FORCED']
 
 PAGE_ENCODING = 'latin1'
+
+kodi_major_version = None
 
 
 # ============================
@@ -330,7 +331,6 @@ def _handle_compressed_subs(workdir, compressed_file, ext):
     """
     Uncompress 'compressed_file' in 'workdir'.
     """
-    kodi_major_version = int(xbmc.getInfoLabel('System.BuildVersion').split('.')[0])
     if ext == 'rar' and kodi_major_version >= 18:
         src = 'archive' + '://' + quote_plus(compressed_file) + '/'
         (cdirs, cfiles) = xbmcvfs.listdir(src)
@@ -509,12 +509,22 @@ def _cleanup_tempdirs(profile_path):
     log(u"Results: %d of %d dirs removed" % (ok, total + 1), level=LOGDEBUG)
 
 
+def sleep(secs):
+    """Sleeps efficiently for secs seconds"""
+    if kodi_major_version > 13:
+        xbmc.Monitor().waitForAbort(secs)
+    else:
+        xbmc.sleep(1000 * secs)
+
+
 def main():
     """Main entry point of the script when it is invoked by XBMC."""
+    global kodi_major_version
     # Get parameters from XBMC and launch actions
     params = get_params(sys.argv)
     action = params.get('action', 'Unknown')
     xbmc.log(u"SUBDIVX - Version: %s -- Action: %s" % (__version__, action), level=LOGNOTICE)
+    kodi_major_version = int(xbmc.getInfoLabel('System.BuildVersion').split('.')[0])
 
     if action in ('search', 'manualsearch'):
         item = {
@@ -591,7 +601,7 @@ def main():
         # Send end of directory to XBMC
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
-        time.sleep(2)
+        sleep(2)
         if __addon__.getSetting('show_nick_in_place_of_lang') == 'true':
             _double_dot_fix_hack(params['filename'].encode('utf-8'))
         _cleanup_tempdir(workdir, verbose=True)
