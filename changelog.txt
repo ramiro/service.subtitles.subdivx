@@ -1,8 +1,8 @@
 0.3.5
-- Adapt to handle subdivx.com pagination changes.
-- Add caching of web search results with new configurable TTL setting.
+- Adapt to handle subdivx.com pagination changes
+- Add caching of web search results with new configurable TTL setting
 - Limit search results to 40. Avoid duplicate results if pagination stops
-  working.
+  working
 
 0.3.3
 - Implement caching of web search results. Use a cache validity of one hour.
@@ -19,11 +19,11 @@
 - Release changes since 0.2.5
 
 0.2.13
-- Add 'news' section to addon.xml. Translate it and description to Spanish.
+- Add 'news' section to addon.xml. Translate it and description to Spanish
 
 0.2.12
 - Comply with new Kodi policies: Less verbose logging by default. Achieved
-  by moving most of it to LOGDEBUG level.
+  by moving most of it to LOGDEBUG level
 
 0.2.11
 - Remove disposable temporary directory after using it.
@@ -65,7 +65,7 @@
   pre-releases.
 - Make sure the userdata/addon_data/s.s.s/ dir exists when handling tempdirs
   even when the user hasn't touched our setting. Thanks Adrián Suárez
-  (upadrian).
+  (upadrian)
 - More robust final download link RE-based extraction.
 - Handle .srt filenames with unicode chars more robustly.
 - Make rating actually helpful by reflecting relative download count.
@@ -73,7 +73,7 @@
 
 0.0.8
 - Handle new page added by subdivx.com. Thanks github users @upadrian,
-  @gboado and @felexx90.
+  @gboado and @felexx90
 - Simplify handling of temporary directory used to download & uncompress
   subtitle files by skipping the 'remove it recursively and re-create' stage
   which caused problems with mixed/unknown encodings, Unicode text passed in
@@ -86,7 +86,7 @@
 - Remove code added for 0.0.5 which isn't needed, had been added to workarond
   a Kodi Helix bug with handling of temp dir.
 - Implement manual search. Issue #2. Thanks Diego Garber.
-- Minor cleanups.
+- Minor cleanups
 
 0.0.6
 - When the new option to show nicks was set, the subtitle file written ended

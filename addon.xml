@@ -14,17 +14,13 @@
     <summary lang="en">Subdivx.com</summary>
     <description lang="es">Busca y descarga subtítulos desde Subdivx.com</description>
     <description lang="en">Search and download subtitles from Subdivx.com</description>
-    <disclaimer lang="en"></disclaimer>
     <language>es en</language>
     <platform>all</platform>
     <license>GNU GENERAL PUBLIC LICENSE. Version 2, June 1991</license>
     <forum>https://forum.kodi.tv/forumdisplay.php?fid=143</forum>
-    <website></website>
-    <email></email>
     <source>https://github.com/ramiro/service.subtitles.subdivx</source>
+    <news>v0.3.5
+    - Compatibilidad con últimos cambios en subdivx.com. Limite de 40 resultados. Agregado de caching opcional, ver nueva opción.
+    </news>
   </extension>
-  <news lang="es">v0.3.5
-  - Compatibilidad con últimos cambios en subdivx.com. Limite de 40 resultados. Agregado de caching opcional, ver nueva opción.</news>
-  <news lang="en">v0.3.5
-  - Adapt to latest subdivx.com changes. Limit number of results to 40. Add optional caching of results, see new setting.</news>
 </addon>
