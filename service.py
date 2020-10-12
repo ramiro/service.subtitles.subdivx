@@ -55,7 +55,8 @@ __cwd__        = xbmc.translatePath(__addon__.getAddonInfo('path')).decode("utf-
 __profile__    = xbmc.translatePath(__addon__.getAddonInfo('profile')).decode("utf-8")
 
 
-MAIN_SUBDIVX_URL = "http://www.subdivx.com/"
+MAIN_SUBDIVX_URL = "https://www.subdivx.com/"
+MAIN_URL_2 = "http://www.subdivx.com/"
 SEARCH_PAGE_URL = MAIN_SUBDIVX_URL + "index.php"
 QS_DICT = {
     'accion': '5',
@@ -86,7 +87,7 @@ kodi_major_version = None
 # <div id="menu_detalle_buscador">
 
 SUBTITLE_RE = re.compile(r'''<a\s+class="titulo_menu_izq2?"\s+
-                         href="http://www.subdivx.com/(?P<subdivx_id>.+?)\.html">
+                         href="https://www.subdivx.com/(?P<subdivx_id>.+?)\.html">
                          .+?<img\s+src="img/calif(?P<calif>\d)\.gif"\s+class="detalle_calif"\s+name="detalle_calif">
                          .+?<div\s+id="buscador_detalle_sub">(?P<comment>.*?)</div>
                          .+?<b>Downloads:</b>(?P<downloads>.+?)
@@ -99,7 +100,7 @@ SUBTITLE_RE = re.compile(r'''<a\s+class="titulo_menu_izq2?"\s+
 # 'comment': Translation author comment, may contain filename
 # 'downloads': Downloads, used for ratings
 
-DETAIL_PAGE_LINK_RE = re.compile(r'<a rel="nofollow" class="detalle_link" href="http://www.subdivx.com/(?P<id>.*?)"><b>Bajar</b></a>',
+DETAIL_PAGE_LINK_RE = re.compile(r'<a rel="nofollow" class="detalle_link" href="https://www.subdivx.com/(?P<id>.*?)"><b>Bajar</b></a>',
                                  re.IGNORECASE | re.DOTALL | re.MULTILINE | re.UNICODE)
 
 DOWNLOAD_LINK_RE = re.compile(r'bajar.php\?id=(?P<id>.*?)&u=(?P<u>[^"\']+?)', re.IGNORECASE |
@@ -452,7 +453,7 @@ def Download(subdivx_id, workdir):
     else:
         id_ = match.group('id')
         # Fetch and scrape final page
-        html_content = get_url(MAIN_SUBDIVX_URL + id_)
+        html_content = get_url(MAIN_URL_2 + id_)
     if html_content is None:
         log(u"No content found in final download page", level=LOGFATAL)
         return []
@@ -460,12 +461,19 @@ def Download(subdivx_id, workdir):
     if match is None:
         log(u"Expected content not found in final download page")
         return []
-    id_, u = match.group('id', 'u')
-    actual_subtitle_file_url = MAIN_SUBDIVX_URL + "bajar.php?id=" + id_ + "&u=" + u
+    id_, u = match.group('id', 'u')   
+    actual_subtitle_file_url = MAIN_URL_2 + "/sub" + u + "/" + id_ + ".rar"
+
     content = get_url(actual_subtitle_file_url)
+
+    ctype = is_compressed_file(contents=content)
+    is_compressed = ctype is not None
+    if not is_compressed:
+            actual_subtitle_file_url = MAIN_URL_2 + "/sub" + u + "/" + id_ + ".zip"
+            content = get_url(actual_subtitle_file_url)
     if content is None:
         log(u"Got no content when downloading actual subtitle file",
-            level=LOGFATAL)
+        level=LOGFATAL)
         return []
     saved_fnames = _save_subtitles(workdir, content)
     return saved_fnames
