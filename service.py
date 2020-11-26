@@ -55,18 +55,22 @@ __cwd__        = xbmc.translatePath(__addon__.getAddonInfo('path')).decode("utf-
 __profile__    = xbmc.translatePath(__addon__.getAddonInfo('profile')).decode("utf-8")
 
 
-MAIN_SUBDIVX_URL = "http://www.subdivx.com/"
+MAIN_SUBDIVX_URL = "https://www.subdivx.com/"
 SEARCH_PAGE_URL = MAIN_SUBDIVX_URL + "index.php"
 QS_DICT = {
     'accion': '5',
     'masdesc': '',
     'oxdown': '1',
 }
+QS_KEY_QUERY = 'q'
+QS_KEY_PAGE = 'pg'
 MAX_RESULTS_COUNT = 40
 
 INTERNAL_LINK_URL_BASE = "plugin://%s/?"
 SUB_EXTS = ['SRT', 'SUB', 'SSA']
-HTTP_USER_AGENT = "User-Agent=Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.2.3) Gecko/20100401 Firefox/3.6.3 ( .NET CLR 3.5.30729)"
+HTTP_USER_AGENT = ""
+# HTTP_USER_AGENT = "User-Agent=Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.2.3) Gecko/20100401 Firefox/3.6.3 ( .NET CLR 3.5.30729)"
+# HTTP_USER_AGENT = "User-Agent=Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.21 Safari/537.36"
 FORCED_SUB_SENTINELS = ['FORZADO', 'FORCED']
 
 PAGE_ENCODING = 'latin1'
@@ -86,7 +90,7 @@ kodi_major_version = None
 # <div id="menu_detalle_buscador">
 
 SUBTITLE_RE = re.compile(r'''<a\s+class="titulo_menu_izq2?"\s+
-                         href="http://www.subdivx.com/(?P<subdivx_id>.+?)\.html">
+                         href="https://www.subdivx.com/(?P<subdivx_id>.+?)\.html">
                          .+?<img\s+src="img/calif(?P<calif>\d)\.gif"\s+class="detalle_calif"\s+name="detalle_calif">
                          .+?<div\s+id="buscador_detalle_sub">(?P<comment>.*?)</div>
                          .+?<b>Downloads:</b>(?P<downloads>.+?)
@@ -146,8 +150,7 @@ def log(msg, level=LOGDEBUG):
 
 def get_url(url):
     class MyOpener(FancyURLopener):
-        # version = HTTP_USER_AGENT
-        version = ''
+        version = HTTP_USER_AGENT
     my_urlopener = MyOpener()
     log(u"Fetching %s" % url)
     try:
@@ -190,7 +193,7 @@ def process_page(page_nr, srch_param_name, srch_str, file_orig_path):
     qs_dict = QS_DICT.copy()
     qs_dict[srch_param_name] = srch_str
     if page_nr > 1:
-        qs_dict['pg'] = str(page_nr)
+        qs_dict[QS_KEY_PAGE] = str(page_nr)
     url = build_subdivx_url(qs_dict)
     content = get_url(url)
     if content is None or not SUBTITLE_RE.search(content):
@@ -242,7 +245,7 @@ def get_all_subs(searchstring, languageshort, file_orig_path):
     page_nr = 1
     last_page = set()
     while True:
-        page_results, current_page = process_page(page_nr, 'q', searchstring, file_orig_path)
+        page_results, current_page = process_page(page_nr, QS_KEY_QUERY, searchstring, file_orig_path)
         if not page_results:
             break
         if current_page == last_page:
