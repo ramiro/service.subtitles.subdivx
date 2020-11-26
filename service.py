@@ -48,7 +48,7 @@ __addon__ = xbmcaddon.Addon()
 __author__     = __addon__.getAddonInfo('author')
 __scriptid__   = __addon__.getAddonInfo('id')
 __scriptname__ = __addon__.getAddonInfo('name')
-__version__    = '0.3.5'
+__version__    = '0.3.6'
 __language__   = __addon__.getLocalizedString
 
 __cwd__        = xbmc.translatePath(__addon__.getAddonInfo('path')).decode("utf-8")
@@ -56,6 +56,8 @@ __profile__    = xbmc.translatePath(__addon__.getAddonInfo('profile')).decode("u
 
 
 MAIN_SUBDIVX_URL = "https://www.subdivx.com/"
+MAIN_SUBDIVX_URL_FOR_DOWNLOAD = "http://www.subdivx.com/"
+# MAIN_SUBDIVX_URL_FOR_DOWNLOAD = MAIN_SUBDIVX_URL
 SEARCH_PAGE_URL = MAIN_SUBDIVX_URL + "index.php"
 QS_DICT = {
     'accion': '5',
@@ -348,7 +350,7 @@ def build_tvshow_searchstring(item):
     return ''.join(parts)
 
 
-def Search(item):
+def action_search(item):
     """Called when subtitle download is requested from XBMC."""
     log(u'item = %s' % pformat(item))
     # Do what's needed to get the list of subtitles from service site
@@ -438,7 +440,25 @@ def _save_subtitles(workdir, content):
         return [{'path': tmp_fname, 'forced': False}]
 
 
-def Download(subdivx_id, workdir):
+def method_traditional(sub_id, u):
+    actual_subtitle_file_url = MAIN_SUBDIVX_URL + "bajar.php?id=" + sub_id + "&u=" + u
+    return get_url(actual_subtitle_file_url)
+
+
+def method_direct_download(sub_id, u):
+    if u == "1":
+        u = ""
+    for ext in (".rar", ".zip"):
+        actual_subtitle_file_url = MAIN_SUBDIVX_URL_FOR_DOWNLOAD + "sub" + u + "/" + sub_id + ext
+        content = get_url(actual_subtitle_file_url)
+        if content is not None:
+            break
+    else:
+        return None
+    return content
+
+
+def action_download(subdivx_id, workdir):
     """Called when subtitle download is requested from XBMC."""
     # Get the page with the subtitle link,
     # i.e. http://www.subdivx.com/X6XMjE2NDM1X-iron-man-2-2010
@@ -461,16 +481,21 @@ def Download(subdivx_id, workdir):
         return []
     match = DOWNLOAD_LINK_RE.search(html_content)
     if match is None:
-        log(u"Expected content not found in final download page")
+        log(u"Expected content not found in final download page", level=LOGFATAL)
         return []
     id_, u = match.group('id', 'u')
-    actual_subtitle_file_url = MAIN_SUBDIVX_URL + "bajar.php?id=" + id_ + "&u=" + u
-    content = get_url(actual_subtitle_file_url)
-    if content is None:
-        log(u"Got no content when downloading actual subtitle file",
-            level=LOGFATAL)
+    methods = [
+        method_direct_download,
+        method_traditional,
+    ]
+    for method in methods:
+        content = method(id_, u)
+        if content is not None:
+            saved_fnames = _save_subtitles(workdir, content)
+            break
+    else:
+        log(u"Got no content when downloading actual subtitle file", level=LOGFATAL)
         return []
-    saved_fnames = _save_subtitles(workdir, content)
     return saved_fnames
 
 
@@ -625,7 +650,7 @@ def main():
             stackPath = item['file_original_path'].split(" , ")
             item['file_original_path'] = stackPath[0][8:]
 
-        Search(item)
+        action_search(item)
         # Send end of directory to XBMC
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
@@ -639,8 +664,8 @@ def main():
         # Make sure it ends with a path separator (Kodi 14)
         workdir = workdir + os.path.sep
         debug_dump_path(workdir, 'workdir')
-        # We pickup our arguments sent from the Search() function
-        subs = Download(params["id"], workdir)
+        # We pickup our arguments sent from the action_search() function
+        subs = action_download(params["id"], workdir)
         # We can return more than one subtitle for multi CD versions, for now
         # we are still working out how to handle that in XBMC core
         for sub in subs:
