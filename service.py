@@ -19,7 +19,8 @@ except Exception:
 import sys
 import tempfile
 from unicodedata import normalize
-from urllib import FancyURLopener, unquote, quote_plus, urlencode, quote
+from urllib import unquote, quote_plus, urlencode, quote
+import urllib2
 from urlparse import parse_qs, urlsplit, urlunsplit
 
 try:
@@ -151,17 +152,21 @@ def log(msg, level=LOGDEBUG):
 
 
 def get_url(url):
-    class MyOpener(FancyURLopener):
-        version = HTTP_USER_AGENT
-    my_urlopener = MyOpener()
+    req = urllib2.Request(url)
+    req.add_header("User-Agent", HTTP_USER_AGENT)
     log(u"Fetching %s" % url)
     try:
-        response = my_urlopener.open(url)
+        response = urllib2.urlopen(req)
         content = response.read()
-    except Exception:
-        log(u"Failed to fetch %s" % url, level=LOGWARNING)
-        content = None
-    return content
+    except urllib2.HTTPError as e:
+        log(u"Failed to fetch %s (HTTP status: %d)" % (url, e.code), level=LOGWARNING)
+    except urllib2.URLError as e:
+        log(u"Failed to fetch %s (URL error %s)" % (url, e.reason), level=LOGWARNING)
+    except Exception as e:
+        log(u"Failed to fetch %s (generic error %s)" % (url, e), level=LOGWARNING)
+    else:
+        return content
+    return None
 
 
 def cleanup_subdivx_comment(comment):
