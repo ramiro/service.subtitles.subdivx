@@ -57,8 +57,6 @@ __profile__    = xbmc.translatePath(__addon__.getAddonInfo('profile')).decode("u
 
 
 MAIN_SUBDIVX_URL = "https://www.subdivx.com/"
-MAIN_SUBDIVX_URL_FOR_DOWNLOAD = "http://www.subdivx.com/"
-# MAIN_SUBDIVX_URL_FOR_DOWNLOAD = MAIN_SUBDIVX_URL
 SEARCH_PAGE_URL = MAIN_SUBDIVX_URL + "index.php"
 QS_DICT = {
     'accion': '5',
@@ -460,7 +458,7 @@ def method_direct_download(sub_id, u):
     if u == "1":
         u = ""
     for ext in (".rar", ".zip"):
-        actual_subtitle_file_url = MAIN_SUBDIVX_URL_FOR_DOWNLOAD + "sub" + u + "/" + sub_id + ext
+        actual_subtitle_file_url = MAIN_SUBDIVX_URL + "sub" + u + "/" + sub_id + ext
         content = get_url(actual_subtitle_file_url)
         if content is not None:
             break
