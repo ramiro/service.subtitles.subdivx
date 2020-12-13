@@ -76,7 +76,7 @@ SUB_EXTS = ['SRT', 'SUB', 'SSA']
 HTTP_USER_AGENT = "User-Agent=Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.21 Safari/537.36"
 FORCED_SUB_SENTINELS = ['FORZADO', 'FORCED']
 
-PAGE_ENCODING = 'latin1'
+PAGE_ENCODING = 'utf-8'
 
 kodi_major_version = None
 
