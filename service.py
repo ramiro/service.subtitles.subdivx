@@ -71,9 +71,9 @@ MAX_RESULTS_COUNT = 40
 
 INTERNAL_LINK_URL_BASE = "plugin://%s/?"
 SUB_EXTS = ['SRT', 'SUB', 'SSA']
-HTTP_USER_AGENT = ""
+# HTTP_USER_AGENT = ""
 # HTTP_USER_AGENT = "User-Agent=Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.2.3) Gecko/20100401 Firefox/3.6.3 ( .NET CLR 3.5.30729)"
-# HTTP_USER_AGENT = "User-Agent=Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.21 Safari/537.36"
+HTTP_USER_AGENT = "User-Agent=Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.21 Safari/537.36"
 FORCED_SUB_SENTINELS = ['FORZADO', 'FORCED']
 
 PAGE_ENCODING = 'latin1'
