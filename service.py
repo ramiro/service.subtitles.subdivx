@@ -98,6 +98,8 @@ SUBTITLE_RE = re.compile(r'''<a\s+class="titulo_menu_izq2?"\s+
                          .+?<div\s+id="buscador_detalle_sub">(?P<comment>.*?)</div>
                          .+?<b>Downloads:</b>(?P<downloads>.+?)
                          <b>Cds:</b>
+                         .+?<b>Comentarios:</b>
+                         .+?<b>Cds:</b>
                          .+?<b>Subido\ por:</b>\s*<a.+?>(?P<uploader>.+?)</a>.+?</div></div>''',
                          re.IGNORECASE | re.DOTALL | re.VERBOSE | re.UNICODE |
                          re.MULTILINE)
@@ -105,6 +107,7 @@ SUBTITLE_RE = re.compile(r'''<a\s+class="titulo_menu_izq2?"\s+
 # 'subdivx_id': ID to fetch the subs files
 # 'comment': Translation author comment, may contain filename
 # 'downloads': Downloads, used for ratings
+# 'uploader': Subdivx community member uploader nick
 
 DETAIL_PAGE_LINK_RE = re.compile(r'<a rel="nofollow" class="detalle_link" href="http://www.subdivx.com/(?P<id>.*?)"><b>Bajar</b></a>',
                                  re.IGNORECASE | re.DOTALL | re.MULTILINE | re.UNICODE)
@@ -203,7 +206,10 @@ def process_page(page_nr, srch_param_name, srch_str, file_orig_path):
         qs_dict[QS_KEY_PAGE] = str(page_nr)
     url = build_subdivx_url(qs_dict)
     content = get_url(url)
-    if content is None or not SUBTITLE_RE.search(content):
+    if content is None:
+        return [], set()
+    if not SUBTITLE_RE.search(content):
+        log(u"No subtitle link regexp match found in page contents", level=LOGSEVERE)
         return [], set()
     subs = []
     descriptions = []
