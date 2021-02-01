@@ -95,7 +95,7 @@ SUBTITLE_RE = re.compile(r'''<a\s+class="titulo_menu_izq2?"\s+
                          .+?<img\s+src="img/calif(?P<calif>\d)\.gif"\s+class="detalle_calif"\s+name="detalle_calif">
                          .+?<div\s+id="buscador_detalle_sub">(?P<comment>.*?)</div>
                          .+?<b>Downloads:</b>(?P<downloads>.+?)
-                         .+?<b>Cds:</b>
+                         <b>Cds:</b>
                          .+?<b>Comentarios:</b>
                          .+?<b>Subido\ por:</b>\s*<a.+?>(?P<uploader>.+?)</a>.+?</div></div>''',
                          re.IGNORECASE | re.DOTALL | re.VERBOSE | re.UNICODE |
