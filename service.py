@@ -301,12 +301,22 @@ def append_subtitle(item, filename):
         item_label = item['uploader']
     else:
         item_label = 'Spanish'
-    listitem = xbmcgui.ListItem(
-        label=item_label,
-        label2=item['descr'],
-        iconImage=str(item['rating']),
-        thumbnailImage=''
-    )
+    if kodi_major_version >= 16:
+        listitem = xbmcgui.ListItem(
+            label=item_label,
+            label2=item['descr']
+        )
+        listitem.setArt({
+            'icon': str(item['rating']),
+            'thumb': '',
+        })
+    else:
+        listitem = xbmcgui.ListItem(
+            label=item_label,
+            label2=item['descr'],
+            iconImage=str(item['rating']),
+            thumbnailImage=''
+        )
     listitem.setProperty("sync", 'true' if item["sync"] else 'false')
     listitem.setProperty("hearing_imp",
                          'true' if item.get("hearing_imp", False) else 'false')
