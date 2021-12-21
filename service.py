@@ -63,7 +63,7 @@ QS_DICT = {
     'masdesc': '',
     'oxdown': '1',
 }
-QS_KEY_QUERY = 'q'
+QS_KEY_QUERY = 'buscar2'
 QS_KEY_PAGE = 'pg'
 MAX_RESULTS_COUNT = 40
 
