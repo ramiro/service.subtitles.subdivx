@@ -1,3 +1,7 @@
+0.4.0
+- First version to be submitted to Kodi v19 (Matrix) addons repository. Only
+  compatible with Python 3. Thanks pedrochiuaua for the initiative and help
+
 0.3.9
 - Adapt to new method for sending search query data (POST). Thanks
   TheArgentinian for the report and pedrochiuaua for the fix
