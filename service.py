@@ -36,7 +36,7 @@ except ImportError:
                   "unit tests.\n")
             sys.exit(1)
 else:
-    from xbmc import (LOGDEBUG, LOGINFO, LOGNOTICE, LOGWARNING, LOGERROR, LOGSEVERE, LOGFATAL, LOGNONE)
+    from xbmc import (LOGDEBUG, LOGINFO, LOGWARNING, LOGERROR, LOGFATAL, LOGNONE)
     import xbmcaddon
     import xbmcgui
     import xbmcplugin
@@ -210,7 +210,7 @@ def process_page(page_nr, srch_str, file_orig_path):
     if content is None:
         return [], set()
     if not SUBTITLE_RE.search(content):
-        log("No subtitle link regexp match found in page contents", level=LOGSEVERE)
+        log("No subtitle link regexp match found in page contents", level=LOGFATAL)
         return [], set()
     subs = []
     descriptions = []
@@ -428,7 +428,7 @@ def _handle_compressed_subs(workdir, compressed_file, ext):
             'path': pjoin(workdir, fname)
         })
     if not found_files:
-        log("Failed to unpack subtitles", level=LOGSEVERE)
+        log("Failed to unpack subtitles", level=LOGFATAL)
     return found_files
 
 
@@ -450,7 +450,7 @@ def _save_subtitles(workdir, content):
         with open(tmp_fname, "wb") as fh:
             fh.write(content)
     except Exception:
-        log("Failed to save subtitles to '%s'" % tmp_fname, level=LOGSEVERE)
+        log("Failed to save subtitles to '%s'" % tmp_fname, level=LOGFATAL)
         return []
     else:
         if is_compressed:
@@ -616,7 +616,7 @@ def main():
     # Get parameters from XBMC and launch actions
     params = get_params(sys.argv)
     action = params.get('action', 'Unknown')
-    xbmc.log("SUBDIVX - Version: %s -- Action: %s" % (__version__, action), level=LOGNOTICE)
+    xbmc.log("SUBDIVX - Version: %s -- Action: %s" % (__version__, action), level=LOGINFO)
     kodi_major_version = int(xbmc.getInfoLabel('System.BuildVersion').split('.')[0])
 
     if action in ('search', 'manualsearch'):
