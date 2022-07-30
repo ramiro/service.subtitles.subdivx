@@ -214,7 +214,6 @@ def process_page(page_nr, srch_str, file_orig_path):
     if content is None:
         return [], set()
     if not SUBTITLE_RE.search(content):
-        log("No subtitle link regexp match found in page contents", level=LOGFATAL)
         return [], set()
     subs = []
     descriptions = []
@@ -265,6 +264,8 @@ def get_all_subs(searchstring, languageshort, file_orig_path):
     while True:
         page_results, current_page = process_page(page_nr, searchstring, file_orig_path)
         if not page_results:
+            if page_nr == 1:
+                log("No subtitle link regexp match found in page contents", level=LOGFATAL)
             break
         if current_page == last_page:
             break
