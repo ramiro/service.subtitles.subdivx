@@ -589,7 +589,7 @@ def get_params(argv):
 
 def debug_dump_path(victim, name):
     t = type(victim)
-    xbmc.log("SUBDIVX - %s (%s): %s" % (name, t, victim), level=LOGDEBUG)
+    xbmc.log("SUBDIVX - %s (%s): %s" % (name, t, victim))
 
 
 def _cleanup_tempdir(dir_path, verbose=False):
@@ -609,7 +609,7 @@ def _cleanup_tempdirs(profile_path):
         result = _cleanup_tempdir(os.path.join(profile_path, dir_path), verbose=False)
         if result:
             ok += 1
-    log("Results: %d of %d dirs removed" % (ok, total + 1), level=LOGDEBUG)
+    log("Results: %d of %d dirs removed" % (ok, total + 1))
 
 
 def sleep(secs):
