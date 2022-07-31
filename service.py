@@ -34,11 +34,17 @@ except ImportError:
         try:
             import mock  # NOQA
         except ImportError:
-            print("You need to install the mock Python library to run "
-                  "unit tests.\n")
+            print("You need to install the mock Python library to run unit tests.\n")
             sys.exit(1)
 else:
-    from xbmc import (LOGDEBUG, LOGINFO, LOGWARNING, LOGERROR, LOGFATAL, LOGNONE)
+    from xbmc import (  # noqa: F401
+        LOGDEBUG,
+        LOGINFO,
+        LOGWARNING,
+        LOGERROR,
+        LOGFATAL,
+        LOGNONE
+    )
     import xbmcaddon
     import xbmcgui
     import xbmcplugin
@@ -47,14 +53,14 @@ else:
 import html2text
 
 __addon__ = xbmcaddon.Addon()
-__author__     = __addon__.getAddonInfo('author')
-__scriptid__   = __addon__.getAddonInfo('id')
+__author__ = __addon__.getAddonInfo('author')
+__scriptid__ = __addon__.getAddonInfo('id')
 __scriptname__ = __addon__.getAddonInfo('name')
-__version__    = '0.3.9'
-__language__   = __addon__.getLocalizedString
+__version__ = '0.3.9'
+__language__ = __addon__.getLocalizedString
 
-__cwd__        = xbmcvfs.translatePath(__addon__.getAddonInfo('path'))
-__profile__    = xbmcvfs.translatePath(__addon__.getAddonInfo('profile'))
+__cwd__ = xbmcvfs.translatePath(__addon__.getAddonInfo('path'))
+__profile__ = xbmcvfs.translatePath(__addon__.getAddonInfo('profile'))
 
 
 MAIN_SUBDIVX_URL = "https://www.subdivx.com/"
@@ -70,9 +76,8 @@ MAX_RESULTS_COUNT = 40
 
 INTERNAL_LINK_URL_BASE = "plugin://%s/?"
 SUB_EXTS = ['SRT', 'SUB', 'SSA']
-# HTTP_USER_AGENT = ""
-# HTTP_USER_AGENT = "User-Agent=Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.2.3) Gecko/20100401 Firefox/3.6.3 ( .NET CLR 3.5.30729)"
-HTTP_USER_AGENT = "User-Agent=Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.21 Safari/537.36"
+HTTP_USER_AGENT = ("User-Agent=Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) "
+                   "Chrome/53.0.2785.21 Safari/537.36")
 FORCED_SUB_SENTINELS = ['FORZADO', 'FORCED']
 
 PAGE_ENCODING = 'utf-8'
@@ -84,34 +89,32 @@ kodi_major_version = None
 # Regular expression patterns
 # ============================
 
-# Subtitle pattern example:
-# <div id="menu_titulo_buscador"><a class="titulo_menu_izq" href="http://www.subdivx.com/X6XMjEzMzIyX-iron-man-2-2010.html">Iron Man 2 (2010)</a></div>
-# <img src="img/calif5.gif" class="detalle_calif">
-# </div><div id="buscador_detalle">
-# <div id="buscador_detalle_sub">Para la versión Iron.Man.2.2010.480p.BRRip.XviD.AC3-EVO, sacados de acá. ¡Disfruten!</div><div id="buscador_detalle_sub_datos"><b>Downloads:</b> 4673 <b>Cds:</b> 1 <b>Comentarios:</b> <a rel="nofollow" href="popcoment.php?idsub=MjEzMzIy" onclick="return hs.htmlExpand(this, { objectType: 'iframe' } )">14</a> <b>Formato:</b> SubRip <b>Subido por:</b> <a class="link1" href="http://www.subdivx.com/X9X303157">TrueSword</a> <img src="http://www.subdivx.com/pais/2.gif" width="16" height="12"> <b>el</b> 06/09/2010  </a></div></div>
-# <div id="menu_detalle_buscador">
-
-SUBTITLE_RE = re.compile(r'''<a\s+class="titulo_menu_izq2?"\s+
-                         href="https://www.subdivx.com/(?P<subdivx_id>.+?)\.html">
-                         .+?<img\s+src="img/calif(?P<calif>\d)\.gif"\s+class="detalle_calif"\s+name="detalle_calif">
-                         .+?<div\s+id="buscador_detalle_sub">(?P<comment>.*?)</div>
-                         .+?<b>Downloads:</b>(?P<downloads>.+?)
-                         <b>Cds:</b>
-                         .+?<b>Comentarios:</b>
-                         .+?<b>Subido\ por:</b>\s*<a.+?>(?P<uploader>.+?)</a>.+?</div></div>''',
-                         re.IGNORECASE | re.DOTALL | re.VERBOSE | re.UNICODE |
-                         re.MULTILINE)
+SUBTITLE_RE = re.compile(
+    r'''<a\s+class="titulo_menu_izq2?"\s+
+    href="https://www.subdivx.com/(?P<subdivx_id>.+?)\.html">
+    .+?<img\s+src="img/calif(?P<calif>\d)\.gif"\s+class="detalle_calif"\s+name="detalle_calif">
+    .+?<div\s+id="buscador_detalle_sub">(?P<comment>.*?)</div>
+    .+?<b>Downloads:</b>(?P<downloads>.+?)
+    <b>Cds:</b>
+    .+?<b>Comentarios:</b>
+    .+?<b>Subido\ por:</b>\s*<a.+?>(?P<uploader>.+?)</a>.+?</div></div>''',
+    re.IGNORECASE | re.DOTALL | re.VERBOSE | re.UNICODE | re.MULTILINE
+)
 # Named groups:
 # 'subdivx_id': ID to fetch the subs files
 # 'comment': Translation author comment, may contain filename
 # 'downloads': Downloads, used for ratings
 # 'uploader': Subdivx community member uploader nick
 
-DETAIL_PAGE_LINK_RE = re.compile(r'<a rel="nofollow" class="detalle_link" href="http://www.subdivx.com/(?P<id>.*?)"><b>Bajar</b></a>',
-                                 re.IGNORECASE | re.DOTALL | re.MULTILINE | re.UNICODE)
+DETAIL_PAGE_LINK_RE = re.compile(
+    r'<a rel="nofollow" class="detalle_link" href="http://www.subdivx.com/(?P<id>.*?)"><b>Bajar</b></a>',
+    re.IGNORECASE | re.DOTALL | re.MULTILINE | re.UNICODE
+)
 
-DOWNLOAD_LINK_RE = re.compile(r'bajar.php\?id=(?P<id>.*?)&u=(?P<u>[^"\']+?)', re.IGNORECASE |
-                              re.DOTALL | re.MULTILINE | re.UNICODE)
+DOWNLOAD_LINK_RE = re.compile(
+    r'bajar.php\?id=(?P<id>.*?)&u=(?P<u>[^"\']+?)',
+    re.IGNORECASE | re.DOTALL | re.MULTILINE | re.UNICODE
+)
 
 
 # ==========
@@ -360,13 +363,13 @@ def build_tvshow_searchstring(item):
     parts = ['%s' % item['tvshow']]
     try:
         season = int(item['season'])
-    except:
+    except Exception:
         pass
     else:
         parts.append(' S%#02d' % season)
         try:
             episode = int(item['episode'])
-        except:
+        except Exception:
             pass
         else:
             parts.append('E%#02d' % episode)
@@ -387,7 +390,10 @@ def action_search(item):
     elif item['tvshow']:
         searchstring = build_tvshow_searchstring(item)
     else:
-        searchstring = '%s%s' % (item['title'], ' (%s)' % item['year'].strip('()') if item.get('year') else '')
+        searchstring = '%s%s' % (
+            item['title'],
+            ' (%s)' % item['year'].strip('()') if item.get('year') else ''
+        )
     log("Search string = %s" % searchstring)
 
     cache_ttl_value = __addon__.getSetting('cache_ttl')
@@ -485,12 +491,14 @@ def action_download(subdivx_id, workdir):
     # Fetch and scrape [new] intermediate page
     html_content = get_html_url(subtitle_detail_url)
     if html_content is None:
-        log("No content found in selected subtitle intermediate detail/final download page",
-            level=LOGFATAL)
+        log("No content found in selected subtitle intermediate detail/final download page", level=LOGFATAL)
         return []
     match = DETAIL_PAGE_LINK_RE.search(html_content)
     if match is None:
-        log("Intermediate detail page for selected subtitle or expected content not found. Handling it as final download page")
+        log(
+            "Intermediate detail page for selected subtitle or expected content not "
+            "found. Handling it as final download page"
+        )
     else:
         id_ = match.group('id')
         # Fetch and scrape final page
@@ -617,7 +625,10 @@ def main():
     # Get parameters from XBMC and launch actions
     params = get_params(sys.argv)
     action = params.get('action', 'Unknown')
-    xbmc.log("SUBDIVX - Version: %s -- Action: %s" % (__version__, action), level=LOGINFO)
+    xbmc.log(
+        "SUBDIVX - Version: %s -- Action: %s" % (__version__, action),
+        level=LOGINFO
+    )
     kodi_major_version = int(xbmc.getInfoLabel('System.BuildVersion').split('.')[0])
 
     if action in ('search', 'manualsearch'):
