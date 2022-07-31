@@ -285,7 +285,7 @@ def compute_ratings(subs_list):
     Calculate the rating figures (from zero to five) in a relative fashion
     based on number of downloads.
 
-    This is later converted by XBMC/Kodi in a zero to five stars GUI.
+    This is later converted by Kodi into a zero to five stars GUI.
 
     Ideally, we should be able to use a smarter number instead of just the
     download count of every subtitle but it seems in Subdivx the 'score' value
@@ -378,7 +378,7 @@ def build_tvshow_searchstring(item):
 
 
 def action_search(item):
-    """Called when subtitle search is requested from XBMC."""
+    """Called when subtitle search is requested from Kodi."""
     log('item = %s' % pformat(item))
     # Do what's needed to get the list of subtitles from service site
     # use item["some_property"] that was set earlier.
@@ -485,7 +485,7 @@ def method_direct_download(sub_id, u):
 
 
 def action_download(subdivx_id, workdir):
-    """Called when subtitle download is requested from XBMC."""
+    """Called when subtitle download is requested from Kodi."""
     # Get the page with the subtitle link,
     # i.e. http://www.subdivx.com/X6XMjE2NDM1X-iron-man-2-2010
     subtitle_detail_url = MAIN_SUBDIVX_URL + quote(subdivx_id)
@@ -557,7 +557,7 @@ def _double_dot_fix_hack(video_filename):
 
 def _subtitles_setting(name):
     """
-    Uses XBMC/Kodi JSON-RPC API to retrieve subtitles location settings values.
+    Uses Kodi JSON-RPC API to retrieve subtitles location settings values.
     """
     command = '''{
     "jsonrpc": "2.0",
@@ -621,9 +621,9 @@ def sleep(secs):
 
 
 def main():
-    """Main entry point of the script when it is invoked by XBMC."""
+    """Main entry point of the script when it is invoked by Kodi."""
     global kodi_major_version
-    # Get parameters from XBMC and launch actions
+    # Get parameters from Kodi and launch actions
     params = get_params(sys.argv)
     action = params.get('action', 'Unknown')
     xbmc.log(
@@ -677,7 +677,7 @@ def main():
             item['file_original_path'] = stackPath[0][8:]
 
         action_search(item)
-        # Send end of directory to XBMC
+        # Send end of directory to Kodi
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
     elif action == 'download':
@@ -695,7 +695,7 @@ def main():
         # We pickup our arguments sent from the action_search() function
         subs = action_download(params["id"], workdir)
         # We can return more than one subtitle for multi CD versions, for now
-        # we are still working out how to handle that in XBMC core
+        # we are still working out how to handle that in Kodi core
         for sub in subs:
             # XXX: Kodi still can't handle multiple subtitles files returned
             # from an addon, it will always use the first file returned. So
@@ -706,7 +706,7 @@ def main():
             listitem = xbmcgui.ListItem(label=sub['path'])
             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=sub['path'],
                                         listitem=listitem, isFolder=False)
-        # Send end of directory to XBMC
+        # Send end of directory to Kodi
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
         sleep(2)
