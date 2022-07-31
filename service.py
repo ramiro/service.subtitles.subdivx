@@ -305,7 +305,7 @@ def compute_ratings(subs_list):
     log("subs_list = %s" % pformat(subs_list))
 
 
-def append_subtitle(item, filename):
+def append_subtitle(kodi_dir_handle, item, filename):
     if __addon__.getSetting('show_nick_in_place_of_lang') == 'true':
         item_label = item['uploader']
     else:
@@ -337,7 +337,7 @@ def append_subtitle(item, filename):
     xbmc_url = build_xbmc_item_url(url, item, filename)
     # Add it to list, this can be done as many times as needed for all
     # subtitles found
-    xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),
+    xbmcplugin.addDirectoryItem(handle=kodi_dir_handle,
                                 url=xbmc_url,
                                 listitem=listitem,
                                 isFolder=False)
@@ -377,7 +377,7 @@ def build_tvshow_searchstring(item):
     return ''.join(parts)
 
 
-def action_search(item):
+def action_search(kodi_dir_handle, item):
     """Called when subtitle search is requested from Kodi."""
     log('item = %s' % pformat(item))
     # Do what's needed to get the list of subtitles from service site
@@ -411,7 +411,7 @@ def action_search(item):
     compute_ratings(subs_list)
 
     for sub in subs_list:
-        append_subtitle(sub, file_original_path)
+        append_subtitle(kodi_dir_handle, sub, file_original_path)
 
 
 def _handle_compressed_subs(workdir, compressed_file, ext):
@@ -624,6 +624,7 @@ def main():
     """Main entry point of the script when it is invoked by Kodi."""
     global kodi_major_version
     # Get parameters from Kodi and launch actions
+    kodi_dir_handle = int(sys.argv[1])
     params = get_params(sys.argv)
     action = params.get('action', 'Unknown')
     xbmc.log(
@@ -676,9 +677,9 @@ def main():
             stackPath = item['file_original_path'].split(" , ")
             item['file_original_path'] = stackPath[0][8:]
 
-        action_search(item)
+        action_search(kodi_dir_handle, item)
         # Send end of directory to Kodi
-        xbmcplugin.endOfDirectory(int(sys.argv[1]))
+        xbmcplugin.endOfDirectory(kodi_dir_handle)
 
     elif action == 'download':
         debug_dump_path(
@@ -704,10 +705,10 @@ def main():
             if sub['forced']:
                 continue
             listitem = xbmcgui.ListItem(label=sub['path'])
-            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=sub['path'],
+            xbmcplugin.addDirectoryItem(handle=kodi_dir_handle, url=sub['path'],
                                         listitem=listitem, isFolder=False)
         # Send end of directory to Kodi
-        xbmcplugin.endOfDirectory(int(sys.argv[1]))
+        xbmcplugin.endOfDirectory(kodi_dir_handle)
 
         sleep(2)
         if __addon__.getSetting('show_nick_in_place_of_lang') == 'true':
