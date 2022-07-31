@@ -567,11 +567,6 @@ def _subtitles_setting(name):
         raise ValueError
 
 
-def normalize_string(str):
-    return normalize('NFKD', unicode(unicode(str, 'utf-8'))).encode('ascii',
-                                                                    'ignore')
-
-
 def get_params(argv):
     params = {}
     qs = argv[2].lstrip('?')
@@ -631,11 +626,11 @@ def main():
             'temp': False,
             'rar': False,
             'year': xbmc.getInfoLabel("VideoPlayer.Year"),
-            'season': str(xbmc.getInfoLabel("VideoPlayer.Season")),
-            'episode': str(xbmc.getInfoLabel("VideoPlayer.Episode")),
-            'tvshow': normalize_string(xbmc.getInfoLabel("VideoPlayer.TVshowtitle")),
+            'season': xbmc.getInfoLabel("VideoPlayer.Season"),
+            'episode': xbmc.getInfoLabel("VideoPlayer.Episode"),
+            'tvshow': normalize("NFKD", xbmc.getInfoLabel("VideoPlayer.TVshowtitle")),
             # Try to get original title
-            'title': normalize_string(xbmc.getInfoLabel("VideoPlayer.OriginalTitle")),
+            'title': normalize("NFKD", xbmc.getInfoLabel("VideoPlayer.OriginalTitle")),
             # Full path of a playing file
             'file_original_path': unquote(xbmc.Player().getPlayingFile()),
             '3let_language': [],
@@ -652,7 +647,7 @@ def main():
 
         if not item['title']:
             # No original title, get just Title
-            item['title'] = normalize_string(xbmc.getInfoLabel("VideoPlayer.Title"))
+            item['title'] = normalize("NFKD", xbmc.getInfoLabel("VideoPlayer.Title"))
 
         if "s" in item['episode'].lower():
             # Check if season is "Special"
