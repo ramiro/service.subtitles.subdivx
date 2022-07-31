@@ -22,5 +22,8 @@
     <news>v0.3.5
     - Compatibilidad con últimos cambios en subdivx.com. Limite de 40 resultados. Agregado de caching opcional, ver nueva opción.
     </news>
+    <assets>
+      <icon>resources/icon.png</icon>
+    </assets>
   </extension>
 </addon>
