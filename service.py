@@ -6,23 +6,25 @@
 # Port to Kodi 19 Matrix/Python 3: pedrochiuaua, cramm, 2021-2022
 
 
-from json import loads
 import os
-from os.path import join as pjoin
 import os.path
-from pprint import pformat
 import re
 import shutil
+from json import loads
+from os.path import join as pjoin
+from pprint import pformat
+
 try:
     import StorageServer
 except Exception:
     import storageserverdummy as StorageServer
+
 import sys
 import tempfile
+import urllib.error
+import urllib.request
 from unicodedata import normalize
-from urllib.parse import unquote, quote_plus, urlencode, quote
-import urllib.request, urllib.error, urllib.parse
-from urllib.parse import parse_qs
+from urllib.parse import parse_qs, quote, quote_plus, unquote, urlencode
 
 try:
     import xbmc
@@ -43,7 +45,6 @@ else:
     import xbmcvfs
 
 import html2text
-
 
 __addon__ = xbmcaddon.Addon()
 __author__     = __addon__.getAddonInfo('author')
