@@ -637,7 +637,7 @@ def main():
             # Try to get original title
             'title': normalize_string(xbmc.getInfoLabel("VideoPlayer.OriginalTitle")),
             # Full path of a playing file
-            'file_original_path': unquote(xbmc.Player().getPlayingFile().decode('utf-8')),
+            'file_original_path': unquote(xbmc.Player().getPlayingFile()),
             '3let_language': [],
             '2let_language': [],
             'manual_search': 'searchstring' in params,
