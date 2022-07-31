@@ -646,7 +646,7 @@ def main():
         if 'searchstring' in params:
             item['manual_search_string'] = params['searchstring']
 
-        for lang in unquote(params['languages']).decode('utf-8').split(","):
+        for lang in unquote(params['languages']).split(","):
             item['3let_language'].append(xbmc.convertLanguage(lang, xbmc.ISO_639_2))
             item['2let_language'].append(xbmc.convertLanguage(lang, xbmc.ISO_639_1))
 
@@ -703,7 +703,7 @@ def main():
 
         sleep(2)
         if __addon__.getSetting('show_nick_in_place_of_lang') == 'true':
-            _double_dot_fix_hack(params['filename'].encode('utf-8'))
+            _double_dot_fix_hack(params['filename'])
         _cleanup_tempdir(workdir, verbose=True)
 
 
