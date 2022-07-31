@@ -378,7 +378,7 @@ def build_tvshow_searchstring(item):
 
 
 def action_search(item):
-    """Called when subtitle download is requested from XBMC."""
+    """Called when subtitle search is requested from XBMC."""
     log('item = %s' % pformat(item))
     # Do what's needed to get the list of subtitles from service site
     # use item["some_property"] that was set earlier.
