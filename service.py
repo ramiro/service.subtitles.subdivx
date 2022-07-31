@@ -52,8 +52,8 @@ __scriptname__ = __addon__.getAddonInfo('name')
 __version__    = '0.3.9'
 __language__   = __addon__.getLocalizedString
 
-__cwd__        = xbmc.translatePath(__addon__.getAddonInfo('path'))
-__profile__    = xbmc.translatePath(__addon__.getAddonInfo('profile'))
+__cwd__        = xbmcvfs.translatePath(__addon__.getAddonInfo('path'))
+__profile__    = xbmcvfs.translatePath(__addon__.getAddonInfo('profile'))
 
 
 MAIN_SUBDIVX_URL = "https://www.subdivx.com/"
@@ -675,8 +675,10 @@ def main():
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
     elif action == 'download':
-        debug_dump_path(xbmc.translatePath(__addon__.getAddonInfo('profile')),
-                        "xbmc.translatePath(__addon__.getAddonInfo('profile'))")
+        debug_dump_path(
+            xbmcvfs.translatePath(__addon__.getAddonInfo('profile')),
+            "xbmcvfs.translatePath(__addon__.getAddonInfo('profile'))"
+        )
         debug_dump_path(__profile__, '__profile__')
         xbmcvfs.mkdirs(__profile__)
         _cleanup_tempdirs(__profile__)
