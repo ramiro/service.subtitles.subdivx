@@ -417,9 +417,7 @@ def _handle_compressed_subs(workdir, compressed_file, ext):
             fsrc = '%s%s' % (src, cfile)
             xbmcvfs.copy(fsrc, workdir + cfile)
     else:
-        xbmc.executebuiltin("XBMC.Extract(%s, %s)" % (
-                            compressed_file.encode("utf-8"),
-                            workdir.encode("utf-8")), True)
+        xbmc.executebuiltin("Extract(%s, %s)" % (compressed_file, workdir), True)
 
     files = os.listdir(workdir)
     files = [f for f in files if is_subs_file(f)]
