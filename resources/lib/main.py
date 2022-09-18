@@ -633,7 +633,7 @@ def sleep(secs):
         xbmc.sleep(1000 * secs)
 
 
-def main():
+def run():
     """Main entry point of the script when it is invoked by Kodi."""
     global kodi_major_version
     # Get parameters from Kodi and launch actions

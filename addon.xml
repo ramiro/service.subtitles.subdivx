@@ -9,7 +9,7 @@
     <import addon="script.common.plugin.cache" version="2.5.5"/>
   </requires>
   <extension point="xbmc.subtitle.module"
-             library="service.py" />
+             library="addon.py" />
   <extension point="xbmc.addon.metadata">
     <summary lang="en_GB">Subdivx.com</summary>
     <description lang="es_AR">Busca y descarga subtítulos desde Subdivx.com</description>
