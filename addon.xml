@@ -11,13 +11,13 @@
   <extension point="xbmc.subtitle.module"
              library="service.py" />
   <extension point="xbmc.addon.metadata">
-    <summary lang="en">Subdivx.com</summary>
-    <description lang="es">Busca y descarga subtítulos desde Subdivx.com</description>
-    <description lang="en">Search and download subtitles from Subdivx.com</description>
+    <summary lang="en_GB">Subdivx.com</summary>
+    <description lang="es_AR">Busca y descarga subtítulos desde Subdivx.com</description>
+    <description lang="en_GB">Search and download subtitles from Subdivx.com</description>
     <language>es en</language>
     <platform>all</platform>
     <license>GNU GENERAL PUBLIC LICENSE. Version 2, June 1991</license>
-    <forum>https://forum.kodi.tv/forumdisplay.php?fid=143</forum>
+    <forum>https://forum.kodi.tv/showthread.php?tid=209064</forum>
     <source>https://github.com/ramiro/service.subtitles.subdivx</source>
     <news>v0.4.0
     - Versión compatible con Kodi version 19 (Matrix) y posteriores
