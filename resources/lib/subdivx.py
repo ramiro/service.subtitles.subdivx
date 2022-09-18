@@ -138,9 +138,7 @@ def is_forced_subs_file(fn):
 
 def is_compressed_file(fname=None, contents=None):
     if contents is None:
-        assert fname is not None
         contents = open(fname, "rb").read()
-    assert len(contents) > 4
     header = contents[:4]
     if header == b"Rar!":
         compression_type = "RAR"
@@ -190,7 +188,7 @@ def get_html_url(url, query_data=None):
     # Content-Type HTTP response header but meta HTML tag states latin1 and
     # actual encoding of HTML page contents seems to be inconsistent.
     # We might want to look at# BeatifulSoup UnicodeDammit detwingle (already
-    # packed as a Kodi addon or python-ftfy for a more robust solution with
+    # packed as a Kodi addon) or python-ftfy for a more robust solution with
     # less risk of generating mojibake or dropping too much content
     return content.decode(PAGE_ENCODING, "ignore")
 
@@ -457,7 +455,7 @@ def _save_subtitles(workdir, content):
     Save dowloaded file whose content is in 'content' to a temporary file
     If it's a compressed one then uncompress it.
 
-    Returns filename of saved file or None.
+    Return filename of saved file or None.
     """
     ctype = is_compressed_file(contents=content)
     is_compressed = ctype is not None
@@ -543,7 +541,7 @@ def action_download(subdivx_id, workdir):
 
 
 def _double_dot_fix_hack(video_filename):
-    """Corrects filename of downloaded subtitle from Foo-Blah..srt to Foo-Blah.es.srt"""
+    """Correct filename of downloaded subtitle from Foo-Blah..srt to Foo-Blah.es.srt"""
 
     log("video_filename = %s" % video_filename)
 
@@ -572,7 +570,7 @@ def _double_dot_fix_hack(video_filename):
 
 def _subtitles_setting(name):
     """
-    Uses Kodi JSON-RPC API to retrieve subtitles location settings values.
+    Use Kodi JSON-RPC API to retrieve subtitles location settings values.
     """
     command = """{
     "jsonrpc": "2.0",
@@ -628,7 +626,7 @@ def _cleanup_tempdirs(profile_path):
 
 
 def sleep(secs):
-    """Sleeps efficiently for secs seconds"""
+    """Sleep efficiently for secs seconds"""
     if kodi_major_version > 13:
         xbmc.Monitor().waitForAbort(secs)
     else:
@@ -732,7 +730,3 @@ def main():
         if __addon__.getSetting("show_nick_in_place_of_lang") == "true":
             _double_dot_fix_hack(params["filename"])
         _cleanup_tempdir(workdir, verbose=True)
-
-
-if __name__ == "__main__":
-    main()
